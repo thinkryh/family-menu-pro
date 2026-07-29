@@ -163,9 +163,11 @@ GitHub 上这是两件独立的事,**只做授权不会有任何仓库权限**:
 
 以下操作被会话代理拦截,只能你在网页上点:
 
-- 创建仓库(`POST /user/repos`)
-- 改仓库可见性
+- 创建 / 删除仓库,改仓库可见性
+- 删除远端分支(`git push origin --delete` 会被代理直接断连,`DELETE /git/refs/*` 返回 403)
 - 开启 / 配置 GitHub Pages(`POST /repos/{owner}/{repo}/pages`)
+
+规律:会话只被允许改**文件内容**,凡是改仓库结构的操作都要你在网页上点。
 
 ### Pages 的限制
 
