@@ -1,0 +1,39 @@
+{
+  "family": {
+    "adults": 4,
+    "adults_note": "4 位成人,其中 2 位掌勺、会做家常菜(所以菜谱只写决策要点不写步骤);吃辣,无忌口",
+    "baby": {
+      "age_months": 13,
+      "allergies": [],
+      "introduced_proteins": ["猪肉", "牛肉", "鱼肉"]
+    },
+    "taste": { "base": "阜阳咸鲜", "spicy_ok": true, "exclude": ["臭鳜鱼"] },
+    "location": "杭州"
+  },
+  "meals": {
+    "breakfast": {
+      "template": "主食(稀饭/包子/烙馍/杂粮 四类轮换) + 蛋 + 小菜",
+      "grain_rotation": ["玉米", "红薯", "紫薯", "贝贝南瓜"],
+      "removed": ["撒汤"]
+    },
+    "lunch": { "template": "1荤 + 1素 + 米饭" },
+    "dinner": {
+      "template": "1荤或半荤 + 1素 + 主食",
+      "staple": "米饭为主;面食仅晚餐且 ≤3 次/周"
+    }
+  },
+  "constraints": {
+    "noodle_per_week_max": 3,
+    "noodle_meal": "dinner_only",
+    "soup_per_week_max": 2,
+    "meal_time_budget_min": 60,
+    "recipe_cooldown_days": 7,
+    "same_main_ingredient_per_week_max": 2
+  },
+  "shopping": {
+    "batches_per_week_default": 2,
+    "batches_per_week_range": [2, 4],
+    "default_batch_days": ["周日", "周三"],
+    "rule": "叶菜/鲜鱼/水果跟批次走,每批买到下一批为止;耐储根茎瓜类集中在周日批;清单按批次独立输出,附储存与先吃顺序"
+  }
+}

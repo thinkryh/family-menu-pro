@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>这周吃什么</title>
+<style>
+  :root {
+    --bg: #f7f8f5;
+    --card: #ffffff;
+    --ink: #26302b;
+    --ink-soft: #6b7a72;
+    --line: #e4e9e3;
+    --line-soft: #eef2ed;
+    --green: #3e7d64;       /* 青瓷绿:主行动色 */
+    --green-soft: #e7f1ec;
+    --baby: #c4652a;        /* 暖杏:宝宝专属色,全站唯一强调 */
+    --baby-soft: #fdf0e5;
+    --baby-ink: #7a4318;
+    --warn: #a8712a;
+    --warn-soft: #fbf1df;
+    --spice: #b3452e;
+    --on-green: #ffffff;   /* 绿底上的文字 */
+    --radius: 14px;
+  }
+  /* 深色令牌只写一份:跟随系统(除非被显式指定浅色),或被显式指定深色 */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141816; --card: #1d2321; --ink: #e6ece8; --ink-soft: #93a29a;
+      --line: #2b3330; --line-soft: #232a27;
+      --green: #6fb597; --green-soft: #1f302a;
+      --baby: #e08b4d; --baby-soft: #33241a; --baby-ink: #f0c39a;
+      --warn: #d6a259; --warn-soft: #322718;
+      --spice: #e0755c; --on-green: #10201a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141816; --card: #1d2321; --ink: #e6ece8; --ink-soft: #93a29a;
+    --line: #2b3330; --line-soft: #232a27;
+    --green: #6fb597; --green-soft: #1f302a;
+    --baby: #e08b4d; --baby-soft: #33241a; --baby-ink: #f0c39a;
+    --warn: #d6a259; --warn-soft: #322718;
+    --spice: #e0755c; --on-green: #10201a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--ink);
+    font-size: 16px; line-height: 1.55;
+    padding-bottom: calc(66px + env(safe-area-inset-bottom));
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; }
+
+  header {
+    padding: 18px 18px 10px;
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  }
+  header h1 { font-size: 22px; font-weight: 700; letter-spacing: .5px; }
+  header .week { font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; text-align: right; }
+
+  .gen-btn {
+    display: block; margin: 4px 14px 12px; width: calc(100% - 28px);
+    padding: 13px; border: none; border-radius: var(--radius);
+    background: var(--green); color: var(--on-green); font-size: 16px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+  }
+  .gen-btn:active { opacity: .85; }
+
+  /* ---------- 本周体检 ---------- */
+  .health { margin: 0 14px 12px; display: flex; gap: 7px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 999px; padding: 5px 11px 5px 8px; font-size: 12.5px;
+    color: var(--ink-soft); white-space: nowrap;
+  }
+  .chip b { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 700; }
+  .chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+  .chip.warn { background: var(--warn-soft); border-color: transparent; color: var(--warn); }
+  .chip.warn b { color: var(--warn); }
+  .chip.warn .dot { background: var(--warn); }
+  .chip.baby { background: var(--baby-soft); border-color: transparent; color: var(--baby-ink); }
+  .chip.baby b { color: var(--baby-ink); }
+  .chip.baby .dot { background: var(--baby); }
+
+  /* ---------- 周概览 ---------- */
+  .ov-toggle {
+    margin: 0 14px 10px; display: flex; gap: 6px;
+    background: var(--line-soft); border-radius: 10px; padding: 3px;
+  }
+  .ov-toggle button {
+    flex: 1; border: none; background: none; font-family: inherit;
+    font-size: 13px; padding: 7px 0; border-radius: 8px; cursor: pointer; color: var(--ink-soft);
+  }
+  .ov-toggle button.on { background: var(--card); color: var(--ink); font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+
+  .grid { margin: 0 14px 16px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .grid-row { display: grid; grid-template-columns: 42px 1fr 1fr 1fr; border-bottom: 1px solid var(--line-soft); }
+  .grid-row:last-child { border-bottom: none; }
+  .grid-row.head { background: var(--line-soft); }
+  .grid-row.head div { font-size: 11px; color: var(--ink-soft); font-weight: 700; letter-spacing: 1px; padding: 7px 6px; text-align: center; }
+  .grid-row.today { background: var(--green-soft); }
+  .grid-day { font-size: 12px; font-weight: 700; color: var(--green); display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--line-soft); }
+  .grid-cell { padding: 7px 8px; border-right: 1px solid var(--line-soft); min-width: 0; }
+  .grid-cell:last-child { border-right: none; }
+  .grid-cell span { display: block; font-size: 12.5px; line-height: 1.45; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .grid-cell span.sub { color: var(--ink-soft); font-size: 11.5px; }
+  .grid-cell span.nob { color: var(--ink-soft); opacity: .55; }
+  .grid-cell .bdot { color: var(--baby); }
+
+  /* ---------- 日详情 ---------- */
+  .day { margin: 0 14px 18px; }
+  .day-label {
+    font-size: 13px; font-weight: 700; color: var(--ink-soft);
+    padding: 0 6px 6px; letter-spacing: 1px;
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .day-label em { font-style: normal; color: var(--green); font-size: 15px; }
+  .day-label .today-flag { background: var(--green); color: var(--on-green); font-size: 10px; padding: 1px 7px; border-radius: 999px; letter-spacing: 0; }
+
+  .meal {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 11px 14px 12px; margin-bottom: 8px;
+  }
+  .meal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .meal-name { font-size: 12px; color: var(--ink-soft); font-weight: 700; letter-spacing: 2px; }
+  .meal-time { font-size: 11.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .meal-time.over { color: var(--warn); font-weight: 700; }
+  .dish { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 0; }
+  .dish-name { font-size: 16px; }
+  .dish-meta { font-size: 12px; color: var(--ink-soft); margin-left: 6px; font-variant-numeric: tabular-nums; }
+  .spicy { color: var(--spice); font-size: 12px; margin-left: 4px; }
+  .swap {
+    border: 1px solid var(--line); background: none; border-radius: 8px; font-family: inherit;
+    font-size: 12px; color: var(--green); padding: 3px 9px; cursor: pointer; flex-shrink: 0;
+  }
+  .swap:active { background: var(--green-soft); }
+  /* 签名元素:宝宝行 */
+  .baby-row {
+    margin: 6px 0 2px; padding: 8px 10px;
+    background: var(--baby-soft); border-radius: 10px;
+    font-size: 13px; color: var(--baby-ink); display: flex; gap: 8px; line-height: 1.5;
+  }
+  .baby-row::before { content: "宝"; flex-shrink: 0; width: 20px; height: 20px;
+    background: var(--baby); color: #fff; border-radius: 50%;
+    font-size: 11px; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .baby-row.na { background: var(--line-soft); color: var(--ink-soft); }
+  .baby-row.na::before { background: #a9aca6; content: "无"; }
+
+  .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 20px;
+    background: var(--green-soft); color: var(--green); margin-left: 6px; vertical-align: 1px; }
+  .tag.noodle { background: var(--warn-soft); color: var(--warn); }
+
+  /* ---------- 购物清单 ---------- */
+  .batch { margin: 0 14px 20px; }
+  .batch-head { font-size: 15px; font-weight: 700; padding: 0 6px 4px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .batch-head .prog { font-size: 12px; font-weight: 400; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .bar { height: 4px; background: var(--line-soft); border-radius: 99px; margin: 0 6px 8px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--green); border-radius: 99px; transition: width .2s; }
+  .cat-block { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 8px; padding: 8px 14px; }
+  .cat-title { font-size: 12px; color: var(--ink-soft); font-weight: 700; letter-spacing: 2px; margin-bottom: 2px; }
+  .shop-item { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--line); cursor: pointer; }
+  .shop-item:last-child { border-bottom: none; }
+  .shop-item .box {
+    width: 19px; height: 19px; border: 1.5px solid var(--line); border-radius: 6px;
+    flex-shrink: 0; margin-top: 3px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: #fff;
+  }
+  .shop-item.done .box { background: var(--green); border-color: var(--green); }
+  .shop-item.done .s-name, .shop-item.done .shop-qty { text-decoration: line-through; opacity: .45; }
+  .shop-item .grow { flex: 1; min-width: 0; }
+  .s-name { font-size: 15px; }
+  .shop-qty { font-variant-numeric: tabular-nums; color: var(--ink-soft); flex-shrink: 0; margin-top: 1px; }
+  .storage-tip { font-size: 12px; color: var(--baby); margin-top: 1px; }
+  .storage-tip.plain { color: var(--ink-soft); }
+
+  /* ---------- 宝宝页 ---------- */
+  .baby-page { margin: 0 14px; }
+  .sched { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 4px 14px; margin-bottom: 14px; }
+  .sched-row { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px dashed var(--line); font-size: 14px; }
+  .sched-row:last-child { border-bottom: none; }
+  .sched-time { font-variant-numeric: tabular-nums; color: var(--baby); font-weight: 600; flex-shrink: 0; width: 92px; }
+  .rule-block { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 14px; }
+  .rule-block h3 { font-size: 14px; margin-bottom: 6px; color: var(--baby); }
+  .rule-block li { margin-left: 18px; font-size: 14px; padding: 2px 0; }
+  .rule-block p { font-size: 14px; padding: 2px 0; }
+  .rule-block b { color: var(--ink); }
+  .wk-list { display: flex; flex-direction: column; gap: 6px; }
+  .wk-item { display: flex; align-items: center; gap: 9px; font-size: 13.5px; }
+  .wk-item .pill { font-size: 11px; font-variant-numeric: tabular-nums; padding: 1px 8px; border-radius: 999px; background: var(--green-soft); color: var(--green); flex-shrink: 0; }
+  .wk-item .pill.warn { background: var(--warn-soft); color: var(--warn); }
+
+  /* ---------- 底部导航 ---------- */
+  nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 5;
+    display: flex; background: var(--card); border-top: 1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  nav .inner { display: flex; width: 100%; max-width: 720px; margin: 0 auto; }
+  nav button {
+    flex: 1; padding: 12px 0 10px; border: none; background: none; font-family: inherit;
+    font-size: 14px; color: var(--ink-soft); cursor: pointer;
+  }
+  nav button.on { color: var(--green); font-weight: 700; }
+  .empty { text-align: center; color: var(--ink-soft); padding: 60px 30px; font-size: 15px; line-height: 1.8; }
+  .footnote { text-align: center; font-size: 11px; color: var(--ink-soft); padding: 8px 18px 4px; line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1 id="page-title">这周吃什么</h1><div class="week" id="week-label"></div></header>
+  <main id="app"></main>
+</div>
+<nav><div class="inner">
+  <button data-view="menu" class="on">菜单</button>
+  <button data-view="shop">买菜</button>
+  <button data-view="baby">宝宝</button>
+</div></nav>
+
+<script>
+const DATA = /*__DATA__*/null;
+const { config, babyRules, ingredients, recipes } = DATA;
+const ING = Object.fromEntries(ingredients.items.map(i => [i.name, i]));
+const DAYS = ['周一','周二','周三','周四','周五','周六','周日'];
+const MEALS = [['breakfast','早餐'],['lunch','午餐'],['dinner','晚餐']];
+const store = {
+  get: (k, d) => { try { return JSON.parse(localStorage.getItem('fm_' + k)) ?? d; } catch { return d; } },
+  set: (k, v) => { try { localStorage.setItem('fm_' + k, JSON.stringify(v)); } catch {} }
+};
+let week = store.get('week', null);
+let bought = store.get('bought', {});
+let view = 'menu';
+let overview = store.get('overview', true);
+
+// ---------- 工具 ----------
+const month = new Date().getMonth() + 1;
+const todayIdx = (new Date().getDay() + 6) % 7;   // 周一=0
+const inSeason = (m) => m === 'all' || (Array.isArray(m) && m.includes(month));
+const recipeInSeason = (r) => inSeason(r.season_months);
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const R = (id) => recipes.items.find(r => r.id === id);
+// 鱼 = 水产类里的鱼(虾另计),用于每周「鱼 ≥2 次」核对
+const FISH = ingredients.items.filter(i => i.category === '水产' && i.name !== '虾').map(i => i.name);
+
+function pool(cats, mealType) {
+  return recipes.items.filter(r =>
+    cats.includes(r.category) && r.meal_type.includes(mealType) && recipeInSeason(r));
+}
+
+// ---------- 排菜 ----------
+function generateWeek() {
+  const used = {};          // recipeId -> 已排天序(冷却)
+  const mainCount = {};     // 主料 -> 次数/周
+  let noodle = 0;
+  const soupDays = new Set();
+  while (soupDays.size < Math.min(config.constraints.soup_per_week_max, 2)) {
+    soupDays.add(Math.floor(Math.random() * 7));
+  }
+
+  const chooseDish = (cats, mealType, dayIdx) => {
+    let cand = pool(cats, mealType).filter(r => {
+      if (used[r.id] !== undefined && dayIdx - used[r.id] < config.constraints.recipe_cooldown_days) return false;
+      for (const m of r.main_ingredients) {
+        if ((mainCount[m.name] || 0) >= config.constraints.same_main_ingredient_per_week_max) return false;
+      }
+      return true;
+    });
+    if (!cand.length) cand = pool(cats, mealType);   // 池不足时放宽
+    if (!cand.length) return null;
+    const r = pick(cand);
+    used[r.id] = dayIdx;
+    r.main_ingredients.forEach(m => mainCount[m.name] = (mainCount[m.name] || 0) + 1);
+    return r.id;
+  };
+
+  const grains = [...config.meals.breakfast.grain_rotation];
+  const bfStaples = ['稀饭','包子','烙馍','杂粮'];
+
+  const days = DAYS.map((_, i) => {
+    const staple = bfStaples[i % 4];
+    const grain = staple === '杂粮' ? grains[Math.floor(i / 4) % grains.length] : null;
+    const breakfast = {
+      staple: grain ? `${staple}(${grain})` : staple,
+      egg: '蛋 × 每人1个',
+      side: chooseDish(['小菜','素'], 'breakfast', i) || chooseDish(['素'], 'lunch', i)
+    };
+    const lunch = { meat: chooseDish(['荤','半荤'], 'lunch', i), veg: chooseDish(['素'], 'lunch', i), staple: '米饭' };
+
+    // 面食仅晚餐、≤3 次/周:命中时从 主食 菜谱池里选,面条本身带荤带素,当晚不再另排荤菜
+    let dinnerStaple = '米饭', noodleDish = null;
+    if (noodle < config.constraints.noodle_per_week_max && i % 2 === 1) {
+      noodleDish = chooseDish(['主食'], 'dinner', i);
+      if (noodleDish) { dinnerStaple = noodleDish; noodle++; }
+    }
+    const dinner = {
+      meat: noodleDish ? null : chooseDish(['荤','半荤'], 'dinner', i),
+      veg: chooseDish(['素'], 'dinner', i),
+      staple: dinnerStaple,
+      soup: soupDays.has(i) ? chooseDish(['汤'], 'dinner', i) : null
+    };
+    return { breakfast, lunch, dinner };
+  });
+  enforceWeekly(days);
+  return { days, month, generatedAt: Date.now() };
+}
+
+// 每周硬约束:猪肝 1 次(宝宝补铁)、鱼 ≥2 次。随机排菜不保证命中,这里做补位。
+// 补位优先于「同主料每周 ≤2 次」的软约束——营养缺口不能靠运气。
+function enforceWeekly(days) {
+  const count = (names) => days.reduce((n, d) => n + dishesOfDay(d)
+    .filter(id => { const r = R(id); return r && hasIng(r, names); }).length, 0);
+
+  const inject = (names) => {
+    const cands = recipes.items.filter(r => recipeInSeason(r) && hasIng(r, names)
+      && ['荤','半荤'].includes(r.category));
+    if (!cands.length) return false;
+    // 可替换的荤菜位:面食夜没有荤菜位;已满足鱼/肝要求的位子不动
+    const free = [];
+    days.forEach((d, i) => ['lunch','dinner'].forEach(k => {
+      const cur = R(d[k].meat);
+      if (cur && !hasIng(cur, FISH) && !hasIng(cur, ['猪肝'])) free.push([i, k]);
+    }));
+    if (!free.length) return false;
+    const r = pick(cands);
+    const opts = free.filter(([, k]) => r.meal_type.includes(k));
+    if (!opts.length) return false;
+    const [i, k] = pick(opts);
+    days[i][k].meat = r.id;
+    return true;
+  };
+
+  let guard = 0;
+  while (count(['猪肝']) < numIn(babyRules.nutrition_weekly.liver, 1) && guard++ < 6) {
+    if (!inject(['猪肝'])) break;
+  }
+  guard = 0;
+  while (count(FISH) < numIn(babyRules.nutrition_weekly.fish, 2) && guard++ < 6) {
+    if (!inject(FISH)) break;
+  }
+}
+
+function swapDish(dayIdx, mealKey, slot) {
+  const cur = week.days[dayIdx][mealKey][slot];
+  const cats = slot === 'meat' ? ['荤','半荤']
+             : slot === 'soup' ? ['汤']
+             : slot === 'staple' ? ['主食']
+             : ['素','小菜'];
+  const cand = pool(cats, mealKey === 'breakfast' ? 'lunch' : mealKey).filter(r => r.id !== cur);
+  if (!cand.length) return;
+  week.days[dayIdx][mealKey][slot] = pick(cand).id;
+  store.set('week', week); render();
+}
+
+// ---------- 本周体检 ----------
+const dishesOfDay = (d) => [d.breakfast.side, d.lunch.meat, d.lunch.veg, d.lunch.staple,
+                            d.dinner.meat, d.dinner.veg, d.dinner.staple, d.dinner.soup].filter(Boolean);
+const hasIng = (r, names) => r.main_ingredients.some(m => names.includes(m.name));
+const numIn = (s, d) => { const m = String(s).match(/\d+/); return m ? +m[0] : d; };
+
+function weekStats() {
+  let fish = 0, liver = 0, noodles = 0, soups = 0, babyOk = 0, total = 0;
+  week.days.forEach(d => {
+    dishesOfDay(d).forEach(id => {
+      const r = R(id); if (!r) return;
+      total++;
+      if (r.baby_variant.suitable) babyOk++;
+      if (hasIng(r, FISH)) fish++;
+      if (hasIng(r, ['猪肝'])) liver++;
+      if (r.category === '主食') noodles++;
+    });
+    if (d.dinner.soup) soups++;
+  });
+  return {
+    fish:    { n: fish,    target: numIn(babyRules.nutrition_weekly.fish, 2),  label: '鱼', mode: 'min' },
+    liver:   { n: liver,   target: numIn(babyRules.nutrition_weekly.liver, 1), label: '猪肝', mode: 'min' },
+    noodles: { n: noodles, target: config.constraints.noodle_per_week_max,     label: '面食', mode: 'max' },
+    soups:   { n: soups,   target: config.constraints.soup_per_week_max,       label: '汤',  mode: 'max' },
+    baby:    { n: babyOk,  target: total,                                      label: '宝宝可吃', mode: 'ratio' }
+  };
+}
+
+function renderHealth() {
+  const s = weekStats();
+  const chip = (k) => {
+    const c = s[k];
+    if (c.mode === 'ratio') return `<span class="chip baby"><i class="dot"></i>${c.label} <b>${c.n}/${c.target}</b></span>`;
+    const bad = c.mode === 'min' ? c.n < c.target : c.n > c.target;
+    const sign = c.mode === 'min' ? '≥' : '≤';
+    return `<span class="chip ${bad ? 'warn' : ''}"><i class="dot"></i>${c.label} <b>${c.n}</b>/${sign}${c.target}</span>`;
+  };
+  return `<div class="health">${['fish','liver','noodles','soups','baby'].map(chip).join('')}</div>`;
+}
+
+// ---------- 购物清单 ----------
+const isShelf = (name) => ING[name] && ING[name].storage.batch_priority === 3;
+
+function shoppingBatches() {
+  if (!week) return [];
+  const batchDays = [[0,1,2],[3,4,5,6]];   // 周日批管周一-三,周三批管周四-日
+  const names = ['周日采购(管周一至周三 + 全周耐储)','周三采购(管周四至周日,补鲜)'];
+  return batchDays.map((dIdxs, bi) => {
+    const need = {};
+    const add = (rid, mode) => {          // mode: 'fresh' 只加生鲜 | 'shelf' 只加耐储
+      const r = R(rid); if (!r) return;   // '米饭' 等非菜谱字符串自然跳过
+      r.main_ingredients.forEach(m => {
+        const shelf = isShelf(m.name);
+        if (mode === 'fresh' && shelf) return;
+        if (mode === 'shelf' && !shelf) return;
+        need[m.name] = (need[m.name] || 0) + m.qty_g;
+      });
+    };
+    dIdxs.forEach(di => dishesOfDay(week.days[di]).forEach(id => add(id, 'fresh')));
+    // 耐储类(batch_priority 3)按全周需求一次性并入第一批,第二批不再重复出现
+    if (bi === 0) week.days.forEach(d => dishesOfDay(d).forEach(id => add(id, 'shelf')));
+
+    const byCat = {};
+    Object.entries(need).forEach(([name, g]) => {
+      const ing = ING[name];
+      const cat = ing ? ing.category : '其他';
+      (byCat[cat] = byCat[cat] || []).push({ name, g, ing });
+    });
+    Object.values(byCat).forEach(list => list.sort((a, b) =>
+      (a.ing?.storage.batch_priority ?? 9) - (b.ing?.storage.batch_priority ?? 9)));
+    return { name: names[bi], byCat, key: 'b' + bi };
+  });
+}
+
+function toggleBought(key, name) {
+  const k = key + '|' + name;
+  bought[k] = !bought[k];
+  store.set('bought', bought); render();
+}
+
+// ---------- 渲染 ----------
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function dishRow(rid, dayIdx, mealKey, slot) {
+  const r = R(rid);
+  if (!r) return '';
+  const spicy = r.spicy ? `<span class="spicy">${'辣'.repeat(r.spicy)}</span>` : '';
+  const noodleTag = r.category === '主食' ? `<span class="tag noodle">面食</span>` : '';
+  return `<div class="dish">
+    <div><span class="dish-name">${esc(r.name)}</span>${spicy}${noodleTag}
+      <span class="dish-meta">${r.cook_time_min}分${r.prep_ahead ? '·可提前' : ''}</span></div>
+    <button class="swap" onclick="swapDish(${dayIdx},'${mealKey}','${slot}')">换一换</button>
+  </div>${babyLine(r)}`;
+}
+function babyLine(r) {
+  const bv = r.baby_variant;
+  if (bv.suitable) return `<div class="baby-row">${esc(bv.split_point)};${esc(bv.modification)}</div>`;
+  return `<div class="baby-row na">此菜宝宝不吃:${esc(bv.unsuitable_reason)}</div>`;
+}
+function mealLoad(m) {
+  const rs = [m.meat, m.veg, m.staple, m.soup, m.side].filter(Boolean).map(R).filter(Boolean);
+  return { mins: rs.reduce((s, r) => s + r.cook_time_min, 0), prepAhead: rs.some(r => r.prep_ahead) };
+}
+
+function renderGrid() {
+  const dot = (r) => `<span>${r.baby_variant.suitable ? '<i class="bdot">·</i>' : ''}${esc(r.name)}</span>`;
+  const cell = (m, key) => {
+    const rows = [];
+    // 早餐主食是模板字符串(稀饭/包子/烙馍/杂粮),不是菜谱
+    if (key === 'breakfast') rows.push(`<span class="sub">${esc(m.staple)} + 蛋</span>`);
+    [m.meat, m.veg, m.side, m.soup].filter(Boolean).map(R).filter(Boolean).forEach(r => rows.push(dot(r)));
+    if (key !== 'breakfast') {
+      const st = R(m.staple);                       // 面食夜:主食是菜谱;否则是「米饭」
+      rows.push(st ? dot(st) : `<span class="sub">${esc(m.staple)}</span>`);
+    }
+    if (!rows.length) rows.push('<span class="nob">—</span>');
+    return `<div class="grid-cell">${rows.join('')}</div>`;
+  };
+  return `<div class="grid">
+    <div class="grid-row head"><div></div><div>早</div><div>午</div><div>晚</div></div>
+    ${week.days.map((d, i) => `
+      <div class="grid-row ${i === todayIdx ? 'today' : ''}">
+        <div class="grid-day">${DAYS[i].slice(1)}</div>
+        ${cell(d.breakfast, 'breakfast')}${cell(d.lunch, 'lunch')}${cell(d.dinner, 'dinner')}
+      </div>`).join('')}
+  </div>
+  <div class="footnote">带 <i class="bdot" style="color:var(--baby)">·</i> 的菜宝宝能吃 · 今天这行有底色 · 切到「详细」看分菜时机和换一换</div>`;
+}
+
+function renderDays() {
+  return week.days.map((d, i) => `
+    <section class="day">
+      <div class="day-label"><em>${DAYS[i]}</em>${i === todayIdx ? '<span class="today-flag">今天</span>' : ''}</div>
+      ${MEALS.map(([key, label]) => {
+        const m = d[key];
+        const { mins, prepAhead } = mealLoad(m);
+        const over = mins > config.constraints.meal_time_budget_min;
+        let inner = '';
+        if (key === 'breakfast') {
+          inner = `<div class="dish"><span class="dish-name">${esc(m.staple)}</span><span class="tag">主食</span></div>
+            <div class="baby-row">${esc(babyRules.breakfast_adaptation[m.staple.replace(/\(.+\)/, '')] || babyRules.breakfast_adaptation['杂粮'])}</div>
+            <div class="dish"><span class="dish-name">${esc(m.egg)}</span></div>
+            ${m.side ? dishRow(m.side, i, key, 'side') : ''}`;
+        } else {
+          inner = [m.meat && dishRow(m.meat, i, key, 'meat'),
+                   m.veg && dishRow(m.veg, i, key, 'veg'),
+                   R(m.staple) ? dishRow(m.staple, i, key, 'staple')
+                               : `<div class="dish"><span class="dish-name">${esc(m.staple)}</span><span class="tag">主食</span></div>`,
+                   m.soup && dishRow(m.soup, i, key, 'soup')].filter(Boolean).join('');
+        }
+        return `<div class="meal">
+          <div class="meal-head"><span class="meal-name">${label}</span>
+            <span class="meal-time ${over ? 'over' : ''}">${mins} 分${over ? (prepAhead ? ' · 有可提前做的菜' : ' · 超单餐预算') : ''}</span></div>
+          ${inner}</div>`;
+      }).join('')}
+    </section>`).join('');
+}
+
+function renderMenu() {
+  if (!week) return `<div class="empty">还没有本周菜单。<br>点上面的按钮,10 秒生成。</div>`;
+  return renderHealth() + `
+    <div class="ov-toggle">
+      <button class="${overview ? 'on' : ''}" onclick="setOverview(true)">一周概览</button>
+      <button class="${overview ? '' : 'on'}" onclick="setOverview(false)">详细</button>
+    </div>` + (overview ? renderGrid() : renderDays());
+}
+function setOverview(v) { overview = v; store.set('overview', v); render(); }
+
+function renderShop() {
+  if (!week) return `<div class="empty">先生成本周菜单,买菜清单会自动出来。</div>`;
+  return shoppingBatches().map(b => {
+    const all = Object.values(b.byCat).flat();
+    const done = all.filter(it => bought[b.key + '|' + it.name]).length;
+    return `
+    <section class="batch">
+      <div class="batch-head"><span>${esc(b.name)}</span><span class="prog">${done}/${all.length}</span></div>
+      <div class="bar"><i style="width:${all.length ? done / all.length * 100 : 0}%"></i></div>
+      ${Object.entries(b.byCat).map(([cat, items]) => `
+        <div class="cat-block"><div class="cat-title">${esc(cat)}</div>
+          ${items.map(it => {
+            const s = it.ing ? it.ing.storage : null;
+            const urgent = s && s.batch_priority === 1;
+            const on = !!bought[b.key + '|' + it.name];
+            return `<div class="shop-item ${on ? 'done' : ''}" onclick="toggleBought('${b.key}','${esc(it.name)}')">
+              <span class="box">${on ? '✓' : ''}</span>
+              <span class="grow"><span class="s-name">${esc(it.name)}</span>
+                ${s ? `<div class="storage-tip ${urgent ? '' : 'plain'}">${esc(s.method)},${s.max_days} 天内吃完${urgent ? ' · 先吃' : ''}</div>` : ''}
+              </span>
+              <span class="shop-qty">${it.g >= 1000 ? (it.g/1000).toFixed(1) + ' kg' : it.g + ' g'}</span></div>`;
+          }).join('')}
+        </div>`).join('')}
+    </section>`;
+  }).join('') +
+  `<div class="footnote">点一下划掉已买的 · 份量为菜谱累加的净需求,采购时按包装规格就近取整<br>耐储类(米面粮油、根茎瓜类)按全周用量并入周日批,周三批只补生鲜</div>`;
+}
+
+function renderBaby() {
+  const b = babyRules;
+  const s = week ? weekStats() : null;
+  const wk = s ? `<div class="rule-block"><h3>本周核对</h3><div class="wk-list">
+      ${[['fish','鱼'],['liver','猪肝'],['baby','本周宝宝能吃的菜']].map(([k]) => {
+        const c = s[k];
+        const bad = c.mode === 'min' ? c.n < c.target : false;
+        const txt = c.mode === 'ratio' ? `${c.n}/${c.target}` : `${c.n} 次`;
+        return `<div class="wk-item"><span class="pill ${bad ? 'warn' : ''}">${txt}</span><span>${esc(c.label)}${
+          c.mode === 'min' ? `(目标 ≥${c.target})` : ''}</span></div>`;
+      }).join('')}
+    </div></div>` : '';
+  return `<div class="baby-page">
+    ${wk}
+    <div class="rule-block"><h3>一天的节奏(${b.age_months} 月龄 · 奶 ${b.milk.total_ml}ml)</h3></div>
+    <div class="sched">${b.daily_schedule.default.map(s =>
+      `<div class="sched-row"><span class="sched-time">${esc(s.time)}</span><span>${esc(s.item)}</span></div>`).join('')}
+    </div>
+    <div class="rule-block"><h3>娃醒得晚怎么办</h3><p>${esc(b.daily_schedule.alt_late_wake)}</p></div>
+    <div class="rule-block"><h3>分菜的时机</h3><p>${esc(b.split_point_rule)}</p></div>
+    <div class="rule-block"><h3>不能给的东西</h3><ul>${b.forbidden.map(f => `<li>${esc(f)}</li>`).join('')}</ul></div>
+    <div class="rule-block"><h3>每周要点</h3><ul>${Object.values(b.nutrition_weekly).map(v => `<li>${esc(v)}</li>`).join('')}</ul></div>
+  </div>`;
+}
+
+function render() {
+  const app = document.getElementById('app');
+  document.getElementById('week-label').textContent =
+    week ? `${week.month}月 · ${new Date(week.generatedAt).getMonth()+1}/${new Date(week.generatedAt).getDate()} 生成` : `${month}月 · 菜谱 ${recipes.items.length} 道`;
+  let html = '';
+  if (view === 'menu') html = `<button class="gen-btn" onclick="regen()">${week ? '重新生成本周菜单' : '生成本周菜单'}</button>` + renderMenu();
+  if (view === 'shop') html = renderShop();
+  if (view === 'baby') html = renderBaby();
+  app.innerHTML = html;
+  document.querySelectorAll('nav button').forEach(btn =>
+    btn.classList.toggle('on', btn.dataset.view === view));
+}
+function regen() { week = generateWeek(); bought = {}; store.set('week', week); store.set('bought', bought); render(); }
+document.querySelectorAll('nav button').forEach(btn =>
+  btn.addEventListener('click', () => { view = btn.dataset.view; render(); }));
+render();
+</script>
+</body>
+</html>
