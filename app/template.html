@@ -760,7 +760,7 @@ function renderBaby() {
     </div></div>` : '';
   return `<div class="baby-page">
     ${wk}
-    <div class="rule-block"><h3>一天的节奏(${b.age_months} 月龄 · 奶 ${b.milk.total_ml}ml)</h3></div>
+    <div class="rule-block"><h3>一天的节奏(${esc(b.age_stage)} · 奶 ${b.milk.total_ml}ml)</h3></div>
     <div class="sched">${b.daily_schedule.default.map(s =>
       `<div class="sched-row"><span class="sched-time">${esc(s.time)}</span><span>${esc(s.item)}</span></div>`).join('')}
     </div>

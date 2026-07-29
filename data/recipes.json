@@ -4,7 +4,7 @@
     "name": "菜名",
     "category": "荤|半荤|素|汤|小菜|主食",
     "meal_type": "[breakfast|lunch|dinner]",
-    "tags": "[阜阳家常|时令|宝宝重点|补充荤菜] 等",
+    "tags": "[家常|时令|宝宝重点|补充荤菜|时令素菜|面食] 等",
     "main_ingredients": "[{name, qty_g}] 全家一餐量,name 必须存在于 ingredients.json",
     "aux": "辅料数组,不进购物清单主列(常备调辅)",
     "cook_time_min": "总耗时分钟",
@@ -25,7 +25,7 @@
       "name": "冬瓜烧排骨",
       "category": "荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [
         { "name": "排骨", "qty_g": 500 },
         { "name": "冬瓜", "qty_g": 600 }
@@ -48,7 +48,7 @@
       "name": "青椒炒肉丝",
       "category": "荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [
         { "name": "猪肉", "qty_g": 250 },
         { "name": "青椒", "qty_g": 200 }
@@ -114,7 +114,7 @@
       "name": "香菇炖鸡",
       "category": "荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常"],
+      "tags": ["家常"],
       "main_ingredients": [
         { "name": "鸡", "qty_g": 700 },
         { "name": "香菇", "qty_g": 150 }
@@ -137,7 +137,7 @@
       "name": "红烧肉",
       "category": "荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常"],
+      "tags": ["家常"],
       "main_ingredients": [{ "name": "猪肉", "qty_g": 600 }],
       "aux": ["姜", "葱", "冰糖", "生抽", "老抽", "八角"],
       "cook_time_min": 70,
@@ -157,7 +157,7 @@
       "name": "青椒炒猪肝",
       "category": "荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [
         { "name": "猪肝", "qty_g": 250 },
         { "name": "青椒", "qty_g": 150 }
@@ -180,7 +180,7 @@
       "name": "豇豆炒肉末",
       "category": "半荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [
         { "name": "豇豆", "qty_g": 400 },
         { "name": "猪肉", "qty_g": 150 }
@@ -203,7 +203,7 @@
       "name": "肉末烧豆腐",
       "category": "半荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常"],
+      "tags": ["家常"],
       "main_ingredients": [
         { "name": "豆腐", "qty_g": 400 },
         { "name": "猪肉", "qty_g": 150 }
@@ -226,7 +226,7 @@
       "name": "鲫鱼豆腐汤",
       "category": "汤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常"],
+      "tags": ["家常"],
       "main_ingredients": [
         { "name": "鲫鱼", "qty_g": 500 },
         { "name": "豆腐", "qty_g": 300 }
@@ -249,7 +249,7 @@
       "name": "蒜泥茄子",
       "category": "素",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [{ "name": "茄子", "qty_g": 500 }],
       "aux": ["蒜", "生抽", "香油"],
       "cook_time_min": 20,
@@ -269,7 +269,7 @@
       "name": "拍黄瓜",
       "category": "小菜",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [{ "name": "黄瓜", "qty_g": 400 }],
       "aux": ["蒜", "醋", "辣椒油", "香油"],
       "cook_time_min": 10,
@@ -289,7 +289,7 @@
       "name": "清炒苋菜",
       "category": "素",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [{ "name": "苋菜", "qty_g": 400 }],
       "aux": ["蒜"],
       "cook_time_min": 10,
@@ -309,7 +309,7 @@
       "name": "酸辣土豆丝",
       "category": "素",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常"],
+      "tags": ["家常"],
       "main_ingredients": [{ "name": "土豆", "qty_g": 400 }],
       "aux": ["干辣椒", "醋", "蒜"],
       "cook_time_min": 15,
@@ -329,7 +329,7 @@
       "name": "清蒸鲈鱼",
       "category": "荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常"],
+      "tags": ["家常"],
       "main_ingredients": [{ "name": "鲈鱼", "qty_g": 600 }],
       "aux": ["姜", "葱", "蒸鱼豉油"],
       "cook_time_min": 30,
@@ -349,7 +349,7 @@
       "name": "土豆烧牛肉",
       "category": "荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常"],
+      "tags": ["家常"],
       "main_ingredients": [
         { "name": "牛肉", "qty_g": 500 },
         { "name": "土豆", "qty_g": 400 }
@@ -372,7 +372,7 @@
       "name": "地锅鸡",
       "category": "荤",
       "meal_type": ["dinner"],
-      "tags": ["阜阳家常"],
+      "tags": ["家常"],
       "main_ingredients": [{ "name": "鸡", "qty_g": 800 }],
       "aux": ["面粉(贴饼)", "干辣椒", "青椒", "姜", "蒜", "生抽", "豆瓣酱"],
       "cook_time_min": 60,
@@ -389,10 +389,10 @@
     },
     {
       "id": "fenji_tang",
-      "name": "阜阳粉鸡汤",
+      "name": "粉鸡汤",
       "category": "汤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常"],
+      "tags": ["家常"],
       "main_ingredients": [{ "name": "鸡", "qty_g": 300 }],
       "aux": ["红薯淀粉", "姜", "葱", "胡椒粉", "香菜"],
       "cook_time_min": 30,
@@ -405,14 +405,14 @@
         "modification": "粉鸡剪成 1cm 小块,质地滑软适口,连少量原汤。注意:鸡为未单独引入的新食材,首次给按新食材流程单独引入、观察 3 天",
         "unsuitable_reason": null
       },
-      "steps_brief": "鸡胸切粗条,盐水抓洗后沥干 → 逐条裹厚层红薯淀粉抓匀 → 水微沸时逐条下锅,滑熟定型 → 转小火煮 5 分钟至汤微稠 → 盛宝宝份 → 加盐、白胡椒、香菜出锅。阜阳特色菜,滑嫩关键在淀粉裹足、下锅水不能大滚。"
+      "steps_brief": "鸡胸切粗条,盐水抓洗后沥干 → 逐条裹厚层红薯淀粉抓匀 → 水微沸时逐条下锅,滑熟定型 → 转小火煮 5 分钟至汤微稠 → 盛宝宝份 → 加盐、白胡椒、香菜出锅。皖北特色菜,滑嫩关键在淀粉裹足、下锅水不能大滚。"
     },
     {
       "id": "fanqie_chao_jidan",
       "name": "番茄炒鸡蛋",
       "category": "半荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [
         { "name": "番茄", "qty_g": 400 },
         { "name": "鸡蛋", "qty_g": 200 }
@@ -435,7 +435,7 @@
       "name": "平菇炒肉片",
       "category": "半荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常"],
+      "tags": ["家常"],
       "main_ingredients": [
         { "name": "平菇", "qty_g": 300 },
         { "name": "猪肉", "qty_g": 200 }
@@ -458,7 +458,7 @@
       "name": "韭菜炒鸡蛋",
       "category": "半荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常"],
+      "tags": ["家常"],
       "main_ingredients": [
         { "name": "韭菜", "qty_g": 250 },
         { "name": "鸡蛋", "qty_g": 200 }
@@ -472,7 +472,7 @@
         "suitable": false,
         "split_point": null,
         "modification": null,
-        "unsuitable_reason": "韭菜纤维粗韧,13月龄嚼不碎(食材库 baby_ok=false);蛋已有固定早餐位,本菜不作宝宝份"
+        "unsuitable_reason": "韭菜纤维粗韧,这个阶段嚼不碎(食材库 baby_ok=false);蛋已有固定早餐位,本菜不作宝宝份"
       },
       "steps_brief": null
     },
@@ -481,7 +481,7 @@
       "name": "蒜蓉丝瓜",
       "category": "素",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [{ "name": "丝瓜", "qty_g": 500 }],
       "aux": ["蒜"],
       "cook_time_min": 10,
@@ -501,7 +501,7 @@
       "name": "香菇青菜",
       "category": "素",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常"],
+      "tags": ["家常"],
       "main_ingredients": [
         { "name": "鸡毛菜", "qty_g": 350 },
         { "name": "香菇", "qty_g": 100 }
@@ -524,7 +524,7 @@
       "name": "盐水毛豆",
       "category": "小菜",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [{ "name": "毛豆", "qty_g": 400 }],
       "aux": ["八角", "花椒", "盐"],
       "cook_time_min": 20,
@@ -544,7 +544,7 @@
       "name": "莲藕炖排骨",
       "category": "荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [
         { "name": "排骨", "qty_g": 500 },
         { "name": "莲藕", "qty_g": 500 }
@@ -567,7 +567,7 @@
       "name": "茭白炒肉丝",
       "category": "半荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [
         { "name": "茭白", "qty_g": 350 },
         { "name": "猪肉", "qty_g": 200 }
@@ -590,7 +590,7 @@
       "name": "虾仁炒鸡蛋",
       "category": "半荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [
         { "name": "虾", "qty_g": 300 },
         { "name": "鸡蛋", "qty_g": 150 }
@@ -613,7 +613,7 @@
       "name": "冬瓜丸子汤",
       "category": "汤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [
         { "name": "冬瓜", "qty_g": 500 },
         { "name": "猪肉", "qty_g": 250 }
@@ -636,7 +636,7 @@
       "name": "蒜苔炒肉",
       "category": "半荤",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常"],
+      "tags": ["家常"],
       "main_ingredients": [
         { "name": "蒜苔", "qty_g": 300 },
         { "name": "猪肉", "qty_g": 200 }
@@ -659,7 +659,7 @@
       "name": "蒜蓉木耳菜",
       "category": "素",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [{ "name": "木耳菜", "qty_g": 400 }],
       "aux": ["蒜"],
       "cook_time_min": 10,
@@ -679,7 +679,7 @@
       "name": "豆角焖茄子",
       "category": "素",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [
         { "name": "豇豆", "qty_g": 300 },
         { "name": "茄子", "qty_g": 300 }
@@ -702,7 +702,7 @@
       "name": "虎皮青椒",
       "category": "素",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["阜阳家常", "时令"],
+      "tags": ["家常", "时令"],
       "main_ingredients": [{ "name": "青椒", "qty_g": 400 }],
       "aux": ["蒜", "醋", "生抽"],
       "cook_time_min": 15,
@@ -852,7 +852,7 @@
       "name": "西红柿鸡蛋面",
       "category": "主食",
       "meal_type": ["dinner"],
-      "tags": ["面食", "阜阳家常", "时令"],
+      "tags": ["面食", "家常", "时令"],
       "main_ingredients": [
         { "name": "面条", "qty_g": 500 },
         { "name": "番茄", "qty_g": 400 },
@@ -876,7 +876,7 @@
       "name": "肉丝青菜汤面",
       "category": "主食",
       "meal_type": ["dinner"],
-      "tags": ["面食", "阜阳家常"],
+      "tags": ["面食", "家常"],
       "main_ingredients": [
         { "name": "面条", "qty_g": 500 },
         { "name": "猪肉", "qty_g": 200 },
@@ -900,7 +900,7 @@
       "name": "茄丁肉末打卤面",
       "category": "主食",
       "meal_type": ["dinner"],
-      "tags": ["面食", "阜阳家常", "时令"],
+      "tags": ["面食", "家常", "时令"],
       "main_ingredients": [
         { "name": "面条", "qty_g": 500 },
         { "name": "茄子", "qty_g": 350 },
@@ -1122,7 +1122,7 @@
         "suitable": false,
         "split_point": null,
         "modification": null,
-        "unsuitable_reason": "木耳滑韧有弹性,13月龄呛噎风险高(食材库 baby_ok=false);黄瓜丝虽可给,但整道凉拌菜按从严原则不分宝宝份,宝宝黄瓜走拍黄瓜的分菜位"
+        "unsuitable_reason": "木耳滑韧有弹性,这个阶段呛噎风险高(食材库 baby_ok=false);黄瓜丝虽可给,但整道凉拌菜按从严原则不分宝宝份,宝宝黄瓜走拍黄瓜的分菜位"
       },
       "steps_brief": null
     },
@@ -1151,7 +1151,7 @@
       "name": "手撕包菜",
       "category": "素",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["时令素菜", "阜阳家常"],
+      "tags": ["时令素菜", "家常"],
       "main_ingredients": [{ "name": "包菜", "qty_g": 450 }],
       "aux": ["干辣椒", "蒜", "醋", "生抽"],
       "cook_time_min": 12,
@@ -1171,7 +1171,7 @@
       "name": "醋溜白菜",
       "category": "素",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["时令素菜", "阜阳家常", "时令"],
+      "tags": ["时令素菜", "家常", "时令"],
       "main_ingredients": [{ "name": "白菜", "qty_g": 500 }],
       "aux": ["干辣椒", "醋", "蒜", "生抽"],
       "cook_time_min": 15,
@@ -1254,7 +1254,7 @@
       "name": "地三鲜",
       "category": "素",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["时令素菜", "阜阳家常", "时令"],
+      "tags": ["时令素菜", "家常", "时令"],
       "main_ingredients": [
         { "name": "茄子", "qty_g": 350 },
         { "name": "土豆", "qty_g": 250 },
@@ -1298,7 +1298,7 @@
       "name": "糖拌番茄",
       "category": "小菜",
       "meal_type": ["lunch", "dinner"],
-      "tags": ["时令素菜", "阜阳家常", "时令"],
+      "tags": ["时令素菜", "家常", "时令"],
       "main_ingredients": [{ "name": "番茄", "qty_g": 400 }],
       "aux": ["白糖"],
       "cook_time_min": 5,
@@ -1401,7 +1401,7 @@
       "baby_variant": {
         "suitable": true,
         "split_point": "虾仁粒与豆腐煮熟、勾薄芡后,加盐撒胡椒之前盛出宝宝份",
-        "modification": "虾仁切 0.5cm 小粒、豆腐压碎,羹状质地对 13 月龄最友好。注意:虾为新引入食材,首次单独引入观察 3 天",
+        "modification": "虾仁切 0.5cm 小粒、豆腐压碎,羹状质地对 这个阶段最友好。注意:虾为新引入食材,首次单独引入观察 3 天",
         "unsuitable_reason": null
       },
       "steps_brief": "虾去壳去线切小粒 → 豆腐切小块下锅加少量水煮开 → 下虾粒煮至变色 → 勾薄芡成羹 → 盛出宝宝份 → 余下加盐、白胡椒、香油。宝宝重点菜,羹状好吞咽,虾与豆腐同补优质蛋白和钙。"
@@ -1519,11 +1519,11 @@
       "steps_brief": null
     },
     {
-      "id": "taihe_banmian",
-      "name": "太和板面",
+      "id": "banmian",
+      "name": "板面",
       "category": "主食",
       "meal_type": ["dinner"],
-      "tags": ["面食", "阜阳家常"],
+      "tags": ["面食", "家常"],
       "main_ingredients": [
         { "name": "面条", "qty_g": 500 },
         { "name": "羊肉", "qty_g": 300 },
@@ -1540,7 +1540,7 @@
         "modification": "面条剪短(硬规则 noodle_rule),青菜取嫩叶切碎,可另拌当餐其他菜的肉末补蛋白。注意:羊肉是未引入过的新蛋白,若要给宝宝须另按新食材流程单独引入",
         "unsuitable_reason": null
       },
-      "steps_brief": "羊肉丁加干辣椒、八角、花椒、香叶小火熬成红汤辣卤(可提前一顿做好)→ 面条另锅清水煮软,青菜同锅焯软 → 先盛宝宝份白面+青菜 → 大人碗浇辣卤羊肉汤。阜阳标志性面食,辣度按掌勺者口味调,卤子冷藏可用 2-3 天。"
+      "steps_brief": "羊肉丁加干辣椒、八角、花椒、香叶小火熬成红汤辣卤(可提前一顿做好)→ 面条另锅清水煮软,青菜同锅焯软 → 先盛宝宝份白面+青菜 → 大人碗浇辣卤羊肉汤。北方标志性面食,辣度按掌勺者口味调,卤子冷藏可用 2-3 天。"
     }
   ]
 }

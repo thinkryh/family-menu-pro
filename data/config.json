@@ -3,12 +3,12 @@
     "adults": 4,
     "adults_note": "4 位成人,其中 2 位掌勺、会做家常菜(所以菜谱只写决策要点不写步骤);吃辣,无忌口",
     "baby": {
-      "age_months": 13,
+      "age_stage": "1-2 岁",
       "allergies": [],
       "introduced_proteins": ["猪肉", "牛肉", "鱼肉"]
     },
-    "taste": { "base": "阜阳咸鲜", "spicy_ok": true, "exclude": ["臭鳜鱼"] },
-    "location": "杭州"
+    "taste": { "base": "咸鲜为主,偏北方面食", "spicy_ok": true, "exclude": ["臭鳜鱼"] },
+    "location": "华东"
   },
   "meals": {
     "breakfast": {
