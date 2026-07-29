@@ -203,7 +203,8 @@
 
   /* ---------- 时令指南 ---------- */
   .season-page { margin: 0 14px; }
-  .month-strip { display: grid; grid-template-columns: repeat(12, 1fr); gap: 3px; margin-bottom: 12px; }
+  .month-strip { display: grid; grid-template-columns: repeat(12, 1fr) 1.6fr; gap: 3px; margin-bottom: 12px; }
+  .month-strip button.all { font-size: 11px; letter-spacing: -.5px; }
   .month-strip button {
     border: 1px solid var(--line); background: var(--card); font-family: inherit;
     font-size: 12px; padding: 8px 0; border-radius: 8px; cursor: pointer; color: var(--ink-soft);
@@ -236,9 +237,25 @@
   .bars i.on.sel { opacity: 1; }
   .legend { font-size: 11px; color: var(--ink-soft); padding: 2px 2px 10px; line-height: 1.7; }
 
-  .rec-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 0; }
+  .rec-row { padding: 2px 0; }
   .rec-row + .rec-row { border-top: 1px dashed var(--line); }
+  .rec-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 0; cursor: pointer; }
   .rec-row .meta { font-size: 11.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .rec-row .caret { font-style: normal; font-size: 9px; margin-left: 6px; color: var(--ink-soft); }
+  .rec-row.open { background: var(--line-soft); border-radius: 10px; margin: 4px -6px; padding: 2px 6px 8px; }
+  .rec-detail { padding-top: 2px; }
+  .rec-line { display: flex; gap: 8px; font-size: 13px; line-height: 1.6; padding: 3px 0; flex-wrap: wrap; }
+  .rec-line em { font-style: normal; color: var(--ink-soft); font-size: 11.5px; flex-shrink: 0;
+    width: 34px; letter-spacing: 1px; padding-top: 2px; }
+  .rec-line.plain { color: var(--ink-soft); }
+  .ing-chips { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
+  .ing-chip { background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 2px 9px; font-size: 12.5px; }
+  .ing-chip b { font-variant-numeric: tabular-nums; color: var(--green); }
+  .rec-tag { font-size: 11px; background: var(--card); border: 1px solid var(--line);
+    color: var(--ink-soft); border-radius: 999px; padding: 1px 8px; margin-right: 5px; }
+  .rec-tag.season-tag { font-variant-numeric: tabular-nums; }
+  .rec-row .baby-row { margin: 6px 0 2px; }
   .rec-cat { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--line-soft); color: var(--ink-soft); margin-right: 6px; }
 
   /* ---------- 宝宝页 ---------- */
@@ -301,6 +318,7 @@ let showPrev = false;
 let bought = store.get('bought', {});
 let shopFilter = store.get('shopFilter', null);
 let seasonCat = store.get('seasonCat', null);
+let openRec = null;                            // 时令页展开的菜谱 id
 let view = 'menu';
 let overview = store.get('overview', true);
 let seasonMonth = store.get('seasonMonth', new Date().getMonth() + 1);
@@ -791,45 +809,101 @@ function toggleSeasonFilter(k) {
   seasonFilter = seasonFilter === k ? null : k;
   store.set('seasonFilter', seasonFilter); render();
 }
-function setSeasonTab(t) { seasonTab = t; store.set('seasonTab', t); render(); }
+// 换标签页时清掉筛选:食材的「叶菜」和菜谱的「荤」不是一套东西,留着只会误导
+function setSeasonTab(t) {
+  if (t !== seasonTab) { seasonCat = null; seasonFilter = null; openRec = null; }
+  seasonTab = t;
+  store.set('seasonTab', t); store.set('seasonCat', null); store.set('seasonFilter', null);
+  render();
+}
 function setSeasonCat(c) {
   seasonCat = seasonCat === c ? null : c;
   store.set('seasonCat', seasonCat); render();
 }
+function toggleRec(id) { openRec = openRec === id ? null : id; render(); }
+
+// 菜谱行:收起时只有菜名/辣度/耗时,点开给出「做这道菜要知道的」。
+// 按项目原则 3,不写教程式步骤——掌勺者会做家常菜;写的是主料份量、分菜时机,
+// 以及宝宝重点菜/生僻菜才有的 steps_brief。
+function renderRecRow(r) {
+  const open = openRec === r.id;
+  const head = `<div class="rec-head" onclick="toggleRec('${r.id}')">
+    <div><span class="dish-name" style="font-size:15px">${esc(r.name)}</span>${
+      r.spicy ? `<span class="spicy">${'辣'.repeat(r.spicy)}</span>` : ''}${
+      r.baby_variant.suitable ? '<span class="tag baby-tag">宝宝可吃</span>'
+                              : '<span class="tag baby-no">宝宝不吃</span>'}</div>
+    <span class="meta">${r.cook_time_min}分${r.prep_ahead ? '·可提前' : ''}<i class="caret">${open ? '▲' : '▼'}</i></span>
+  </div>`;
+  if (!open) return `<div class="rec-row">${head}</div>`;
+
+  const mains = r.main_ingredients.map(m =>
+    `<span class="ing-chip">${esc(m.name)} <b>${m.qty_g >= 1000 ? (m.qty_g/1000).toFixed(1) + 'kg' : m.qty_g + 'g'}</b></span>`).join('');
+  const aux = (r.aux || []).length ? `<div class="rec-line"><em>辅料</em>${(r.aux || []).map(esc).join('、')}</div>` : '';
+  const bv = r.baby_variant;
+  const babyBlock = bv.suitable
+    ? `<div class="baby-row">${esc(bv.split_point)};${esc(bv.modification)}</div>`
+    : `<div class="baby-row na">此菜宝宝不吃:${esc(bv.unsuitable_reason)}</div>`;
+  const steps = r.steps_brief
+    ? `<div class="rec-line"><em>做法</em>${esc(r.steps_brief)}</div>`
+    : `<div class="rec-line plain"><em>做法</em>家常做法,按你平时的来;这一栏只给宝宝重点菜和生僻菜写要点。</div>`;
+  const tags = (r.tags || []).map(t => `<span class="rec-tag">${esc(t)}</span>`).join('');
+
+  return `<div class="rec-row open">${head}
+    <div class="rec-detail">
+      <div class="rec-line"><em>主料</em><span class="ing-chips">${mains}</span></div>
+      ${aux}${steps}${babyBlock}
+      <div class="rec-line"><em>标签</em>${tags}<span class="rec-tag season-tag">${
+        r.season_months === 'all' ? '全年' : monthsOf(r.season_months).join('/') + ' 月'}</span></div>
+    </div>
+  </div>`;
+}
 
 function renderSeason() {
-  const mm = seasonMonth;
-  const ings = ingredients.items.filter(i => inMonth(i.season_months, mm));
-  const recs = recipes.items.filter(r => inMonth(r.season_months, mm));
+  const mm = seasonMonth;                       // 0 = 全年,看整个库有什么
+  const allMonths = mm === 0;
+  const inSel = (m) => allMonths || inMonth(m, mm);
+  const ings = ingredients.items.filter(i => inSel(i.season_months));
+  const recs = recipes.items.filter(r => inSel(r.season_months));
 
-  const FILTERS = {
-    baby:  { label: '宝宝能吃', ing: i => i.baby_ok, rec: r => r.baby_variant.suitable },
-    mild:  { label: '不辣',     ing: null,           rec: r => !r.spicy },
-    quick: { label: '30 分内',  ing: null,           rec: r => r.cook_time_min <= 30 },
-    fresh: { label: '当天吃',   ing: i => i.same_day, rec: r => hasIng(r, SAME_DAY) }
-  };
-  const f = seasonFilter ? FILTERS[seasonFilter] : null;
-  let shownIngs = f && f.ing ? ings.filter(f.ing) : ings;
-  const shownRecs = f && f.rec ? recs.filter(f.rec) : recs;
-  // 品类筛选:食材多了以后按叶菜/水果/水产等分流,只在食材页生效
-  const cats = [...new Set(ingredients.items.map(i => i.category))];
-  if (seasonCat) shownIngs = shownIngs.filter(i => i.category === seasonCat);
-  const catBar = seasonTab === 'ing' ? `<div class="filters cat-bar">${cats.map(c =>
-    `<button class="${seasonCat === c ? 'on' : ''}" onclick="setSeasonCat('${esc(c)}')">${esc(c)} ${
-      ings.filter(i => i.category === c).length}</button>`).join('')}</div>` : '';
+  // 筛选按标签页分开:食材页问「买什么」,菜谱页问「做什么」,不再混在一行里
+  const FILTERS = seasonTab === 'ing'
+    ? { baby: { label: '宝宝能吃', fn: i => i.baby_ok },
+        fresh: { label: '当天吃', fn: i => i.same_day } }
+    : { baby: { label: '宝宝能吃', fn: r => r.baby_variant.suitable },
+        mild: { label: '不辣', fn: r => !r.spicy },
+        quick: { label: '30 分内', fn: r => r.cook_time_min <= 30 },
+        fresh: { label: '当天吃', fn: r => hasIng(r, SAME_DAY) } };
+  const f = FILTERS[seasonFilter];
+  let shownIngs = seasonTab === 'ing' && f ? ings.filter(f.fn) : ings;
+  let shownRecs = seasonTab === 'rec' && f ? recs.filter(f.fn) : recs;
+
+  // 品类:食材按叶菜/水果…,菜谱按荤/素/汤…,同一个位置、同一套交互
+  const cats = seasonTab === 'ing'
+    ? [...new Set(ingredients.items.map(i => i.category))]
+    : ['荤','半荤','素','小菜','汤','主食'];
+  const countIn = (c) => seasonTab === 'ing'
+    ? ings.filter(i => i.category === c).length : recs.filter(r => r.category === c).length;
+  if (seasonCat) {
+    shownIngs = shownIngs.filter(i => i.category === seasonCat);
+    shownRecs = shownRecs.filter(r => r.category === seasonCat);
+  }
+  const catBar = `<div class="filters cat-bar">${cats.filter(c => countIn(c)).map(c =>
+    `<button class="${seasonCat === c ? 'on' : ''}" onclick="setSeasonCat('${esc(c)}')">${esc(c)} ${countIn(c)}</button>`
+  ).join('')}</div>`;
 
   const strip = `<div class="month-strip">${MONTHS.map(m =>
     `<button class="${m === mm ? 'on' : ''} ${m === month ? 'now' : ''}" onclick="setSeasonMonth(${m})">${m}</button>`
-  ).join('')}</div>`;
+  ).join('')}<button class="all ${allMonths ? 'on' : ''}" onclick="setSeasonMonth(0)">全年</button></div>`;
 
-  const filters = `<div class="filters">${Object.entries(FILTERS).map(([k, v]) =>
-    `<button class="${seasonFilter === k ? 'on' : ''}" onclick="toggleSeasonFilter('${k}')">${v.label}</button>`
-  ).join('')}</div>`;
-
+  // 标签页放在筛选之前:先决定看食材还是看菜,再谈怎么筛
   const tabs = `<div class="ov-toggle">
     <button class="${seasonTab === 'ing' ? 'on' : ''}" onclick="setSeasonTab('ing')">食材 ${shownIngs.length}</button>
     <button class="${seasonTab === 'rec' ? 'on' : ''}" onclick="setSeasonTab('rec')">菜谱 ${shownRecs.length}</button>
   </div>`;
+
+  const filters = `<div class="filters">${Object.entries(FILTERS).map(([k, v]) =>
+    `<button class="${seasonFilter === k ? 'on' : ''}" onclick="toggleSeasonFilter('${k}')">${v.label}</button>`
+  ).join('')}</div>`;
 
   let body = '';
   if (seasonTab === 'ing') {
@@ -861,23 +935,18 @@ function renderSeason() {
     const order = ['荤','半荤','汤','素','小菜','主食'];
     body = order.filter(c => byCat[c]).map(cat => `
       <div class="ing-block"><div class="cat-title">${esc(cat)} ${byCat[cat].length}</div>
-        ${byCat[cat].map(r => `<div class="rec-row">
-          <div><span class="dish-name" style="font-size:15px">${esc(r.name)}</span>${
-            r.spicy ? `<span class="spicy">${'辣'.repeat(r.spicy)}</span>` : ''}${
-            r.baby_variant.suitable ? '' : '<span class="nb" style="font-size:11px;color:var(--ink-soft);margin-left:6px">宝宝不吃</span>'}</div>
-          <span class="meta">${r.cook_time_min}分${r.prep_ahead ? '·可提前' : ''}</span>
-        </div>`).join('')}
+        ${byCat[cat].map(r => renderRecRow(r)).join('')}
       </div>`).join('') +
-      `<div class="legend">只列 ${mm} 月能做的菜。菜谱的时令 = 所有主料时令的交集,所以主料一过季,菜就自动从这里消失,也不会再被排进菜单。</div>`;
+      `<div class="legend">${allMonths ? '列出全库所有菜' : '只列 ' + mm + ' 月能做的菜'}。菜谱的时令 = 所有主料时令的交集,所以主料一过季,菜就自动从这里消失,也不会再被排进菜单。<br>点菜名展开:用什么料、多少量、宝宝份什么时候盛。</div>`;
   }
 
   return `<div class="season-page">
     ${strip}
     <div class="health">
-      <span class="chip"><i class="dot"></i>${mm} 月在季 <b>${ings.length}</b>/${ingredients.items.length} 食材</span>
+      <span class="chip"><i class="dot"></i>${allMonths ? '全库' : mm + ' 月在季'} <b>${ings.length}</b>/${ingredients.items.length} 食材</span>
       <span class="chip"><i class="dot"></i>可做 <b>${recs.length}</b>/${recipes.items.length} 道菜</span>
     </div>
-    ${filters}${tabs}${catBar}${body}
+    ${tabs}${catBar}${filters}${body}
   </div>`;
 }
 
