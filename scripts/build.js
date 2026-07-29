@@ -29,6 +29,7 @@ try {
 // ---------- 校验 ----------
 const ingNames = new Set(ingredients.items.map((i) => i.name));
 const ids = new Set();
+const ALL_MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 
 for (const r of recipes.items) {
   const tag = `[${r.id || '无id'}]`;
@@ -38,6 +39,20 @@ for (const r of recipes.items) {
   for (const m of r.main_ingredients || []) {
     if (!ingNames.has(m.name)) err(`${tag} 主料「${m.name}」不在食材库,先补 ingredients.json`);
     if (!(m.qty_g > 0)) err(`${tag} 主料「${m.name}」缺 qty_g`);
+  }
+
+  // 时令交集:菜的在季月份必须是所有主料在季月份的子集,主料一过季菜就得跟着下架
+  const rMonths = r.season_months === 'all' ? ALL_MONTHS : r.season_months;
+  if (!Array.isArray(rMonths)) {
+    err(`${tag} season_months 必须是 [1-12] 数组或 "all"`);
+  } else {
+    for (const m of r.main_ingredients || []) {
+      const ing = ingredients.items.find((i) => i.name === m.name);
+      if (!ing) continue;
+      const iMonths = ing.season_months === 'all' ? ALL_MONTHS : ing.season_months;
+      const over = rMonths.filter((x) => !iMonths.includes(x));
+      if (over.length) err(`${tag} 时令超出主料「${m.name}」(${iMonths.join('/')}月):多出 ${over.join('/')} 月`);
+    }
   }
 
   const bv = r.baby_variant;

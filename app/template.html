@@ -290,6 +290,15 @@ const FISH = ingredients.items.filter(i => i.category === '水产' && i.name !==
 // 不隔夜的鲜货:只能排在采购当天
 const SAME_DAY = ingredients.items.filter(i => i.same_day).map(i => i.name);
 const BUY_DAYS = Object.keys(config.shopping.batch_coverage).map(d => DAYS.indexOf(d)).filter(i => i >= 0);
+// 天 -> 采购批次序号(读 batch_coverage,不写死);评分时用来算「同批次内的食材复用」
+const DAY_BATCH = (() => {
+  const cov = config.shopping.batch_coverage, map = {};
+  Object.keys(cov).forEach((k, bi) => cov[k].forEach(d => {
+    const i = DAYS.indexOf(d); if (i >= 0) map[i] = bi;
+  }));
+  return map;
+})();
+const batchOf = (dayIdx) => DAY_BATCH[dayIdx] ?? 0;
 // 每周营养区间:从 baby_rules 的文案里解析「2-3 次」「1-2 次」这类写法
 function range(text, dMin, dMax) {
   const r = String(text).match(/(\d+)\s*[-–~]\s*(\d+)/);
@@ -309,6 +318,8 @@ function pool(cats, mealType) {
 function generateWeek() {
   const used = {};          // recipeId -> 已排天序(冷却)
   const mainCount = {};     // 主料 -> 次数/周
+  const batchIng = {};      // 采购批次 -> {主料: 次数},算食材复用分
+  const dayIng = {};        // 天 -> {主料: 次数},同一天撞主料要罚
   let noodle = 0, fish = 0, liver = 0;
   const soupDays = new Set();
   while (soupDays.size < Math.min(config.constraints.soup_per_week_max, 2)) {
@@ -322,15 +333,49 @@ function generateWeek() {
     if (hasIng(r, ['猪肝']) && liver >= LIVER_T.max) return false;         // 猪肝每周上限
     return true;
   };
-  const take = (r, dayIdx) => {
+  const take = (r, dayIdx, budget) => {
     used[r.id] = dayIdx;
-    r.main_ingredients.forEach(m => mainCount[m.name] = (mainCount[m.name] || 0) + 1);
+    r.main_ingredients.forEach(m => {
+      mainCount[m.name] = (mainCount[m.name] || 0) + 1;
+      const b = batchOf(dayIdx);
+      (batchIng[b] = batchIng[b] || {})[m.name] = (batchIng[b][m.name] || 0) + 1;
+      dayIng[dayIdx] = dayIng[dayIdx] || {};
+      dayIng[dayIdx][m.name] = (dayIng[dayIdx][m.name] || 0) + 1;
+    });
     if (hasIng(r, FISH)) fish++;
     if (hasIng(r, ['猪肝'])) liver++;
+    if (budget) budget.mins += r.cook_time_min;
     return r.id;
   };
 
-  const chooseDish = (cats, mealType, dayIdx) => {
+  // 评分函数:时令分 + 营养缺口填补 + 耗时匹配 + 食材复用 − 重复惩罚。
+  // 硬约束已经在 okHere 挡过一轮,这里只在合法候选里排序。
+  const score = (r, dayIdx, budget) => {
+    let s = 0;
+    // 时令分:限定月份的菜过了季就吃不到,优先于全年都有的菜
+    if (r.season_months !== 'all') s += 3;
+    // 营养缺口填补:本周还没排够的鱼/猪肝,权重最高(上限由 okHere 管)
+    if (hasIng(r, FISH) && fish < FISH_T.min) s += 5;
+    if (hasIng(r, ['猪肝']) && liver < LIVER_T.min) s += 5;
+    // 耗时匹配:凑满 60 分钟预算优先,超预算重罚——可提前做的菜不占当餐灶台,轻罚
+    const after = (budget ? budget.mins : 0) + r.cook_time_min;
+    if (after > config.constraints.meal_time_budget_min) s -= r.prep_ahead ? 1 : 6;
+    else if (r.cook_time_min <= 30) s += 1;
+    // 食材复用:同一采购批次里已经买过的生鲜,再用一次就不用多买、也不会烂在冰箱
+    const bi = batchOf(dayIdx), inBatch = batchIng[bi] || {};
+    r.main_ingredients.forEach(m => {
+      const ing = ING[m.name];
+      if (inBatch[m.name] && ing && ing.storage.batch_priority <= 2) s += 1.5;
+    });
+    // 重复惩罚:同主料全周越多罚越狠,同一天撞主料再加罚
+    r.main_ingredients.forEach(m => {
+      s -= 2 * (mainCount[m.name] || 0);
+      if ((dayIng[dayIdx] || {})[m.name]) s -= 3;
+    });
+    return s + Math.random() * 1.2;   // 同分抖动:免得每周菜单一模一样
+  };
+
+  const chooseDish = (cats, mealType, dayIdx, budget) => {
     const base = pool(cats, mealType).filter(r => okHere(r, dayIdx));
     let cand = base.filter(r => {
       if (used[r.id] !== undefined && dayIdx - used[r.id] < config.constraints.recipe_cooldown_days) return false;
@@ -341,7 +386,10 @@ function generateWeek() {
     });
     if (!cand.length) cand = base;   // 池不足时只放宽软约束(冷却、同主料),硬约束仍然生效
     if (!cand.length) return null;
-    return take(pick(cand), dayIdx);
+    // 每道只打一次分(含随机抖动),再取最高,避免比较过程中分数漂移
+    const best = cand.map(r => ({ r, s: score(r, dayIdx, budget) }))
+                     .reduce((a, b) => (b.s > a.s ? b : a)).r;
+    return take(best, dayIdx, budget);
   };
 
   const drinks = config.meals.breakfast.drink_rotation;
@@ -357,19 +405,21 @@ function generateWeek() {
       staple: grain ? `${staple}(${grain})` : staple,
       egg: '蛋 × 每人1个'
     };
-    const lunch = { meat: chooseDish(['荤','半荤'], 'lunch', i), veg: chooseDish(['素'], 'lunch', i), staple: '米饭' };
+    // 每餐一个耗时预算,评分函数据此把一餐压在 60 分钟内
+    const lb = { mins: 0 }, db = { mins: 0 };
+    const lunch = { meat: chooseDish(['荤','半荤'], 'lunch', i, lb), veg: chooseDish(['素'], 'lunch', i, lb), staple: '米饭' };
 
     // 面食仅晚餐、≤3 次/周:命中时从 主食 菜谱池里选,面条本身带荤带素,当晚不再另排荤菜
     let dinnerStaple = '米饭', noodleDish = null;
     if (noodle < config.constraints.noodle_per_week_max && i % 2 === 1) {
-      noodleDish = chooseDish(['主食'], 'dinner', i);
+      noodleDish = chooseDish(['主食'], 'dinner', i, db);
       if (noodleDish) { dinnerStaple = noodleDish; noodle++; }
     }
     const dinner = {
-      meat: noodleDish ? null : chooseDish(['荤','半荤'], 'dinner', i),
-      veg: chooseDish(['素'], 'dinner', i),
+      meat: noodleDish ? null : chooseDish(['荤','半荤'], 'dinner', i, db),
+      veg: chooseDish(['素'], 'dinner', i, db),
       staple: dinnerStaple,
-      soup: soupDays.has(i) ? chooseDish(['汤'], 'dinner', i) : null
+      soup: soupDays.has(i) ? chooseDish(['汤'], 'dinner', i, db) : null
     };
     return { breakfast, lunch, dinner };
   });

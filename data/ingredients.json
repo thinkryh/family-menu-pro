@@ -12,7 +12,7 @@
       "batch_priority": "1=到手 1-3 天先吃 | 2=中段 | 3=耐储"
     }
   },
-  "_updated": "2026-07,首批覆盖 7-8 月华东时令,每月更新",
+  "_updated": "2026-08,8 月华东时令已核;茭白按夏茭/秋茭双季修正,新增扁豆、无花果",
   "items": [
     { "name": "空心菜", "category": "叶菜", "season_months": [5,6,7,8,9], "baby_ok": true, "baby_note": "取嫩叶焯软切碎", "storage": { "method": "厨房纸包裹冷藏", "max_days": 3, "batch_priority": 1 } },
     { "name": "苋菜", "category": "叶菜", "season_months": [5,6,7,8], "baby_ok": true, "baby_note": "嫩叶切碎,补铁佳", "storage": { "method": "厨房纸包裹冷藏", "max_days": 2, "batch_priority": 1 } },
@@ -37,13 +37,14 @@
     { "name": "西葫芦", "category": "瓜茄", "season_months": [5,6,7,8,9], "baby_ok": true, "baby_note": "去皮炒软切小丁", "storage": { "method": "冷藏", "max_days": 7, "batch_priority": 3 } },
     { "name": "贝贝南瓜", "category": "瓜茄", "season_months": [7,8,9,10], "baby_ok": true, "baby_note": "蒸熟直接给,满分辅食", "storage": { "method": "常温阴凉", "max_days": 14, "batch_priority": 3 } },
     { "name": "豇豆", "category": "豆类", "season_months": [6,7,8,9], "baby_ok": true, "baby_note": "煮软切 0.5cm 小段,禁整段", "storage": { "method": "冷藏", "max_days": 4, "batch_priority": 2 } },
+    { "name": "扁豆", "category": "豆类", "season_months": [8,9,10], "baby_ok": true, "baby_note": "必须彻底炖透变色(生扁豆含皂苷,半生有毒),再切 0.5cm 小段;有任何夹生一律不给", "storage": { "method": "冷藏", "max_days": 5, "batch_priority": 2 } },
     { "name": "毛豆", "category": "豆类", "season_months": [6,7,8], "baby_ok": true, "baby_note": "煮烂剥膜压碎,禁整粒", "storage": { "method": "带荚冷藏/剥粒冷冻", "max_days": 3, "batch_priority": 1 } },
     { "name": "玉米", "category": "杂粮", "season_months": [6,7,8,9], "baby_ok": true, "baby_note": "压扁或刮蓉,禁整粒", "storage": { "method": "带皮冷藏", "max_days": 4, "batch_priority": 2 } },
     { "name": "面条", "category": "杂粮", "season_months": "all", "baby_ok": true, "baby_note": "干挂面;宝宝份剪短煮软(硬规则 noodle_rule),不给整根", "storage": { "method": "常温避光干燥", "max_days": 180, "batch_priority": 3 } },
     { "name": "红薯", "category": "杂粮", "season_months": "all", "baby_ok": true, "baby_note": "蒸熟压泥直接给", "storage": { "method": "常温阴凉通风", "max_days": 21, "batch_priority": 3 } },
     { "name": "紫薯", "category": "杂粮", "season_months": "all", "baby_ok": true, "baby_note": "蒸熟压泥直接给", "storage": { "method": "常温阴凉通风", "max_days": 21, "batch_priority": 3 } },
     { "name": "莲藕", "category": "根茎", "season_months": [7,8,9,10,11], "baby_ok": true, "baby_note": "7月底新藕上市;炖烂切小丁或磨藕泥", "storage": { "method": "保鲜膜冷藏", "max_days": 5, "batch_priority": 2 } },
-    { "name": "茭白", "category": "根茎", "season_months": [6,7,8], "baby_ok": true, "baby_note": "夏茭当季;煮软切小丁", "storage": { "method": "冷藏", "max_days": 4, "batch_priority": 2 } },
+    { "name": "茭白", "category": "根茎", "season_months": [5,6,9,10,11], "baby_ok": true, "baby_note": "煮软切小丁", "storage": { "method": "冷藏", "max_days": 4, "batch_priority": 2 } },
     { "name": "土豆", "category": "根茎", "season_months": "all", "baby_ok": true, "baby_note": "蒸软压泥或小丁", "storage": { "method": "常温避光", "max_days": 21, "batch_priority": 3 } },
     { "name": "胡萝卜", "category": "根茎", "season_months": "all", "baby_ok": true, "baby_note": "必须煮软,禁生条", "storage": { "method": "冷藏", "max_days": 14, "batch_priority": 3 } },
     { "name": "香菇", "category": "菌菇", "season_months": "all", "baby_ok": true, "baby_note": "煮透切末", "storage": { "method": "冷藏", "max_days": 5, "batch_priority": 2 } },
@@ -71,6 +72,7 @@
     { "name": "葡萄", "category": "水果", "season_months": [7,8,9], "baby_ok": true, "baby_note": "必须切四瓣,整颗是硬禁忌", "storage": { "method": "冷藏", "max_days": 5, "batch_priority": 2 } },
     { "name": "龙眼", "category": "水果", "season_months": [7,8,9,10], "baby_ok": false, "baby_note": "圆形带核呛噎风险高,暂不给", "storage": { "method": "冷藏", "max_days": 4, "batch_priority": 2 } },
     { "name": "翠冠梨", "category": "水果", "season_months": [7,8], "baby_ok": true, "baby_note": "浙江当季;去皮小块或刮泥", "storage": { "method": "冷藏", "max_days": 7, "batch_priority": 3 } },
+    { "name": "无花果", "category": "水果", "season_months": [7,8,9], "baby_ok": true, "baby_note": "去皮切小块;新食材按 new_food 流程单独引入观察 3 天", "storage": { "method": "冷藏,极易压伤,2 天内吃完", "max_days": 2, "batch_priority": 1 } },
     { "name": "香蕉", "category": "水果", "season_months": "all", "baby_ok": true, "baby_note": "直接给,兜底水果", "storage": { "method": "常温", "max_days": 4, "batch_priority": 2 } }
   ]
 }
