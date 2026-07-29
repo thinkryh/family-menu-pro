@@ -14,6 +14,9 @@
 | 正式站 | <https://thinkryh.github.io/family-menu-pro/> | Pages 发布源 = `main` 分支 `/docs`,push 后自动更新 |
 | `main` | 只接受来自 `dev` 的合并 | 不直接在上面提交 |
 | `dev` | 日常干活分支 | 加菜谱、改 UI、改数据都在这里 |
+| 预览站 | <https://claude.ai/code/artifact/20d2b178-fc09-4bfe-bd0d-d6a1792381f0> | 绑 `dev`,私有链接,手机可开;合并前先在这里看 |
+
+**两个环境的分工:`dev` → 私有预览链接,`main` → 公开正式站。** 预览链接默认只有你能看,想给家里人试用就在页面右上角分享菜单里单独开。
 
 ### 发布流程
 
@@ -21,7 +24,9 @@
 git checkout dev
 # ... 改数据或模板 ...
 node scripts/build.js          # 校验 + 构建 docs/index.html
-# 本地验证:直接用浏览器打开 docs/index.html,点「生成本周菜单」走一遍
+node scripts/artifact.js       # 生成 .artifact/preview.html
+# 让 Claude 用固定 URL 发布预览(URL 见上表,务必传 url 参数,否则会新开一个链接)
+# 或本地直接用浏览器打开 docs/index.html
 git add -A && git commit -m "..."
 git push origin dev
 
@@ -36,7 +41,9 @@ git checkout dev               # 切回来继续干活
 
 1. 本地打开 `docs/index.html` — 单文件零依赖,和线上完全一致
 2. 无头浏览器自检 — 让 Claude 跑一遍生成菜单、切页面、看有无 JS 报错
-3. 想在手机上看 → 让 Claude 发布成 artifact 私有链接
+3. 手机上看 → `node scripts/artifact.js` 后让 Claude 重发预览链接
+
+> 预览页与仓库版有一处**故意的差异**:artifact 容器的 iframe 高度随内容自适应,固定在视口底部的导航会掉到整页最底部,所以预览版改成顶部吸附;仓库版保持底部导航,手机上拇指够得着。这个转换由 `scripts/artifact.js` 完成,`template.html` 的导航样式若改动,脚本会报错提醒同步。
 
 ### 回滚
 

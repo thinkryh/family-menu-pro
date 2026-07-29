@@ -25,7 +25,8 @@ family-menu/
 ├── docs/
 │   └── index.html         # 构建产物,单文件数据内嵌;GitHub Pages 发布目录
 └── scripts/
-    └── build.js           # 校验 + 数据内嵌 + 构建
+    ├── build.js           # 校验 + 数据内嵌 + 构建
+    └── artifact.js        # 把构建产物转成 artifact 预览页(.artifact/,不入库)
 ```
 
 ## 数据规范
@@ -87,4 +88,5 @@ family-menu/
 - 分支流:日常改动提交到 `dev`,验证通过后合并到 `main` 发布;不直接在 `main` 上提交(详见 SOP.md 第一节)
 - 构建:`node scripts/build.js`(校验 + 生成 docs/index.html);量产时每批跑 `node scripts/build.js --validate`
 - 页面机制:排菜算法在浏览器端运行,localStorage 记住本周菜单与冷却历史;build.js 只负责校验和数据注入。**docs/index.html 是构建产物,禁止手改,改 app/template.html 后重新构建**
+- 环境:`dev` → artifact 私有预览链接(`node scripts/artifact.js` 后由 Claude 发布,URL 见 SOP.md),`main` → 公开正式站
 - 部署:GitHub Pages 发布源 = `main` 分支 `/docs`(Pages 只支持根目录或 /docs,不支持 /app)。合并到 `main` 后 Pages 自动更新,1-2 分钟生效;回滚用 `git revert`
