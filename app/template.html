@@ -151,6 +151,8 @@
   .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 20px;
     background: var(--green-soft); color: var(--green); margin-left: 6px; vertical-align: 1px; }
   .tag.noodle { background: var(--warn-soft); color: var(--warn); }
+  /* 当季专属:过了这几个月就吃不到,排菜时优先级最高,页面上也标出来 */
+  .tag.season { background: transparent; border: 1px solid var(--green); color: var(--green); }
 
   /* ---------- 购物清单 ---------- */
   .batch { margin: 0 14px 20px; }
@@ -480,12 +482,13 @@ const dishesOfDay = (d) => [d.lunch.meat, d.lunch.veg, d.lunch.staple,
 const hasIng = (r, names) => r.main_ingredients.some(m => names.includes(m.name));
 
 function weekStats() {
-  let fish = 0, liver = 0, noodles = 0, soups = 0, babyOk = 0, total = 0;
+  let fish = 0, liver = 0, noodles = 0, soups = 0, babyOk = 0, seasonal = 0, total = 0;
   week.days.forEach(d => {
     dishesOfDay(d).forEach(id => {
       const r = R(id); if (!r) return;
       total++;
       if (r.baby_variant.suitable) babyOk++;
+      if (r.season_months !== 'all') seasonal++;
       if (hasIng(r, FISH)) fish++;
       if (hasIng(r, ['猪肝'])) liver++;
       if (r.category === '主食') noodles++;
@@ -497,6 +500,7 @@ function weekStats() {
     liver:   { n: liver,   min: LIVER_T.min, max: LIVER_T.max,                    label: '猪肝', mode: 'range' },
     noodles: { n: noodles, max: config.constraints.noodle_per_week_max,           label: '面食', mode: 'max' },
     soups:   { n: soups,   max: config.constraints.soup_per_week_max,             label: '汤',  mode: 'max' },
+    season:  { n: seasonal, target: total,                                        label: '当季', mode: 'ratio' },
     baby:    { n: babyOk,  target: total,                                         label: '宝宝可吃', mode: 'ratio' }
   };
 }
@@ -505,7 +509,8 @@ function renderHealth() {
   const s = weekStats();
   const chip = (k) => {
     const c = s[k];
-    if (c.mode === 'ratio') return `<span class="chip baby"><i class="dot"></i>${c.label} <b>${c.n}/${c.target}</b></span>`;
+    // 宝宝那条用宝宝色,当季那条用常规色——一屏里只留一个强调色
+    if (c.mode === 'ratio') return `<span class="chip ${k === 'baby' ? 'baby' : ''}"><i class="dot"></i>${c.label} <b>${c.n}/${c.target}</b></span>`;
     if (c.mode === 'range') {
       const bad = c.n < c.min || c.n > c.max;
       return `<span class="chip ${bad ? 'warn' : ''}"><i class="dot"></i>${c.label} <b>${c.n}</b>/${c.min}-${c.max}</span>`;
@@ -513,7 +518,7 @@ function renderHealth() {
     const bad = c.n > c.max;
     return `<span class="chip ${bad ? 'warn' : ''}"><i class="dot"></i>${c.label} <b>${c.n}</b>/≤${c.max}</span>`;
   };
-  return `<div class="health">${['fish','liver','noodles','soups','baby'].map(chip).join('')}</div>`;
+  return `<div class="health">${['fish','liver','noodles','soups','season','baby'].map(chip).join('')}</div>`;
 }
 
 // ---------- 购物清单 ----------
@@ -571,8 +576,10 @@ function dishRow(rid, dayIdx, mealKey, slot) {
   if (!r) return '';
   const spicy = r.spicy ? `<span class="spicy">${'辣'.repeat(r.spicy)}</span>` : '';
   const noodleTag = r.category === '主食' ? `<span class="tag noodle">面食</span>` : '';
+  // 限定月份的菜标「当季」:全年都能做的菜不标,免得满屏都是
+  const seasonTag = r.season_months !== 'all' ? `<span class="tag season">当季</span>` : '';
   return `<div class="dish">
-    <div><span class="dish-name">${esc(r.name)}</span>${spicy}${noodleTag}
+    <div><span class="dish-name">${esc(r.name)}</span>${spicy}${noodleTag}${seasonTag}
       <span class="dish-meta">${r.cook_time_min}分${r.prep_ahead ? '·可提前' : ''}</span></div>
     <button class="swap" onclick="swapDish(${dayIdx},'${mealKey}','${slot}')">换一换</button>
   </div>${babyLine(r)}`;

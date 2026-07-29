@@ -1541,6 +1541,143 @@
         "unsuitable_reason": null
       },
       "steps_brief": "羊肉丁加干辣椒、八角、花椒、香叶小火熬成红汤辣卤(可提前一顿做好)→ 面条另锅清水煮软,青菜同锅焯软 → 先盛宝宝份白面+青菜 → 大人碗浇辣卤羊肉汤。北方标志性面食,辣度按掌勺者口味调,卤子冷藏可用 2-3 天。"
+    },
+    {
+      "id": "ganbian_biandou",
+      "name": "干煸扁豆",
+      "category": "素",
+      "meal_type": ["lunch", "dinner"],
+      "tags": ["时令素菜"],
+      "main_ingredients": [
+        { "name": "扁豆", "qty_g": 450 }
+      ],
+      "aux": ["蒜末", "干辣椒", "生抽"],
+      "cook_time_min": 20,
+      "prep_ahead": false,
+      "spicy": 1,
+      "season_months": [8, 9, 10],
+      "baby_variant": {
+        "suitable": true,
+        "split_point": "扁豆煸到外皮起皱、颜色由绿转暗黄(全熟标志),下干辣椒和盐之前盛出宝宝份",
+        "modification": "宝宝份另加两勺水加盖再焖 5 分钟到指压即碎,切 0.5cm 小段;有一点夹生一律不给",
+        "unsuitable_reason": null
+      },
+      "steps_brief": "扁豆撕筋掰段,中火多油慢煸到外皮起皱塌软、颜色转暗——这是判断熟透的唯一标准,半生扁豆含皂苷会中毒 → 先盛宝宝份并额外焖软 → 余下下蒜末、干辣椒、生抽炒香。"
+    },
+    {
+      "id": "biandou_men_mian",
+      "name": "扁豆焖面",
+      "category": "主食",
+      "meal_type": ["dinner"],
+      "tags": ["面食", "时令"],
+      "main_ingredients": [
+        { "name": "面条", "qty_g": 500 },
+        { "name": "扁豆", "qty_g": 400 },
+        { "name": "猪肉", "qty_g": 200 }
+      ],
+      "aux": ["蒜末", "生抽", "老抽", "八角"],
+      "cook_time_min": 35,
+      "prep_ahead": false,
+      "spicy": 0,
+      "season_months": [8, 9, 10],
+      "baby_variant": {
+        "suitable": false,
+        "split_point": null,
+        "modification": null,
+        "unsuitable_reason": "面直接在调好味的酱汁里焖熟,做不到「加盐前盛出」;宝宝当餐另煮一小把清水面剪短,配单独盛出的焖透扁豆丁和肉末"
+      },
+      "steps_brief": "肉丝炒香加扁豆翻炒,加水与调料烧开 → 生面条铺在上面加盖焖 12-15 分钟至汤汁收干 → 拌匀。扁豆必须随面焖到全软变色,夹生有毒。"
+    },
+    {
+      "id": "biandou_shao_rou",
+      "name": "扁豆烧肉",
+      "category": "半荤",
+      "meal_type": ["lunch", "dinner"],
+      "tags": ["时令", "家常"],
+      "main_ingredients": [
+        { "name": "扁豆", "qty_g": 400 },
+        { "name": "猪肉", "qty_g": 250 }
+      ],
+      "aux": ["姜", "蒜", "八角", "生抽"],
+      "cook_time_min": 30,
+      "prep_ahead": false,
+      "spicy": 0,
+      "season_months": [8, 9, 10],
+      "baby_variant": {
+        "suitable": true,
+        "split_point": "五花肉炖软、扁豆烧到完全软塌变色后,加盐和生抽调味之前盛出宝宝份",
+        "modification": "扁豆切 0.5cm 小段确认全软无夹生,肉取瘦的部分剁末拌匀",
+        "unsuitable_reason": null
+      },
+      "steps_brief": null
+    },
+    {
+      "id": "xianggu_chao_jiaobai",
+      "name": "香菇炒茭白",
+      "category": "素",
+      "meal_type": ["lunch", "dinner"],
+      "tags": ["时令素菜"],
+      "main_ingredients": [
+        { "name": "茭白", "qty_g": 350 },
+        { "name": "香菇", "qty_g": 150 }
+      ],
+      "aux": ["姜", "生抽"],
+      "cook_time_min": 15,
+      "prep_ahead": false,
+      "spicy": 0,
+      "season_months": [5, 6, 9, 10, 11],
+      "baby_variant": {
+        "suitable": true,
+        "split_point": "茭白片炒软、香菇出水变透后,加盐生抽之前盛出宝宝份",
+        "modification": "茭白与香菇都切小丁,香菇要煮透切末,茭白煮到指压可碎",
+        "unsuitable_reason": null
+      },
+      "steps_brief": null
+    },
+    {
+      "id": "hongshao_dongua",
+      "name": "红烧冬瓜",
+      "category": "素",
+      "meal_type": ["lunch", "dinner"],
+      "tags": ["时令素菜", "家常"],
+      "main_ingredients": [
+        { "name": "冬瓜", "qty_g": 600 }
+      ],
+      "aux": ["蒜", "生抽", "老抽"],
+      "cook_time_min": 20,
+      "prep_ahead": false,
+      "spicy": 0,
+      "season_months": [6, 7, 8, 9],
+      "baby_variant": {
+        "suitable": true,
+        "split_point": "冬瓜块烧到透明软烂后,加生抽老抽和盐之前盛出宝宝份",
+        "modification": "宝宝份压成小块或小丁,原味给,不带酱色",
+        "unsuitable_reason": null
+      },
+      "steps_brief": null
+    },
+    {
+      "id": "qiukui_xiaren",
+      "name": "秋葵炒虾仁",
+      "category": "半荤",
+      "meal_type": ["lunch", "dinner"],
+      "tags": ["时令", "宝宝重点"],
+      "main_ingredients": [
+        { "name": "秋葵", "qty_g": 300 },
+        { "name": "虾", "qty_g": 400 }
+      ],
+      "aux": ["姜", "料酒"],
+      "cook_time_min": 15,
+      "prep_ahead": false,
+      "spicy": 0,
+      "season_months": [6, 7, 8, 9],
+      "baby_variant": {
+        "suitable": true,
+        "split_point": "虾仁全部变色卷起、秋葵焯软断生后,加盐之前盛出宝宝份(爆炒淋的料酒也要在盛出之后再下)",
+        "modification": "虾仁去壳去虾线切 0.5cm 小粒,秋葵切 0.5cm 小段;虾是未引入过的新食材,按 new_food 流程单独引入观察 3 天",
+        "unsuitable_reason": null
+      },
+      "steps_brief": "秋葵整根焯水 2 分钟再切段(先焯后切黏液不流失)→ 虾仁滑炒变色 → 先盛宝宝份 → 余下再下料酒和盐。虾不隔夜,只排在采购当天。"
     }
   ]
 }
