@@ -15,14 +15,16 @@
       "template": "饮品 + 主食 + 蛋。早餐不上炒菜",
       "drink_rotation": ["杂粮豆浆", "牛奶", "黑芝麻豆浆", "牛奶"],
       "drink_note": "轮换表里豆浆与牛奶各半,对应「一半豆浆一半牛奶」",
-      "staple_rotation": ["杂粮", "包子", "馒头", "稀饭", "烙馍"],
+      "staple_rotation": ["杂粮", "包子", "杂粮", "馒头", "杂粮", "稀饭", "杂粮"],
+      "staple_note": "7 天一轮,杂粮占 4 天(≥50%);杂粮日按 grain_rotation 依次换品种,不重样",
       "grain_rotation": ["玉米", "红薯", "紫薯", "贝贝南瓜"],
       "removed": ["撒汤", "炒菜小菜"]
     },
-    "lunch": { "template": "1荤 + 1素 + 米饭" },
+    "lunch": { "template": "1荤 + 1素 + 米饭", "staple": "米饭固定" },
     "dinner": {
-      "template": "1荤或半荤 + 1素 + 主食",
-      "staple": "米饭为主;面食仅晚餐且 ≤3 次/周"
+      "template": "1荤或半荤 + 1素 + 主食;有汤的晚上菜+汤合计 ≤2",
+      "staple": "面食夜吃面;其余晚上不吃米饭,走 staple_rotation 的馒头/花卷",
+      "staple_rotation": ["馒头", "花卷"]
     }
   },
   "constraints": {

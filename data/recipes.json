@@ -1678,6 +1678,30 @@
         "unsuitable_reason": null
       },
       "steps_brief": "秋葵整根焯水 2 分钟再切段(先焯后切黏液不流失)→ 虾仁滑炒变色 → 先盛宝宝份 → 余下再下料酒和盐。虾不隔夜,只排在采购当天。"
+    },
+    {
+      "id": "fanqie_jidan_gedatang",
+      "name": "番茄鸡蛋疙瘩汤",
+      "category": "主食",
+      "meal_type": ["dinner"],
+      "tags": ["面食", "家常", "宝宝重点"],
+      "main_ingredients": [
+        { "name": "面粉", "qty_g": 300 },
+        { "name": "番茄", "qty_g": 400 },
+        { "name": "鸡蛋", "qty_g": 150 }
+      ],
+      "aux": ["葱", "香油", "生抽"],
+      "cook_time_min": 25,
+      "prep_ahead": false,
+      "spicy": 0,
+      "season_months": [6, 7, 8, 9],
+      "baby_variant": {
+        "suitable": true,
+        "split_point": "面疙瘩煮到无硬芯、番茄煮烂、蛋花打散成型后,加盐生抽和香油之前盛出宝宝份",
+        "modification": "盛稠的一碗,疙瘩用勺背压碎到 1cm 以内,汤少肉多;当天早餐已有全蛋则蛋花只给少量",
+        "unsuitable_reason": null
+      },
+      "steps_brief": "面粉少量多次淋水,筷子搅成小疙瘩(宁小勿大,大疙瘩宝宝吞不了)→ 番茄去皮炒出沙加水烧开 → 疙瘩下锅煮 5-6 分钟至无硬芯 → 淋蛋液成花 → 先盛宝宝份 → 余下调味。一碗有主食有菜有蛋,当完整晚餐上,不再另配菜。"
     }
   ]
 }

@@ -59,8 +59,19 @@
   header h1 { font-size: 22px; font-weight: 700; letter-spacing: .5px; }
   header .week { font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; text-align: right; }
 
+  .menu-top { display: flex; gap: 8px; margin: 4px 14px 12px; }
+  .prev-btn {
+    flex-shrink: 0; padding: 13px 14px; border-radius: var(--radius); cursor: pointer;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink-soft);
+    font-family: inherit; font-size: 14px;
+  }
+  .prev-btn.on { background: var(--green-soft); border-color: transparent; color: var(--green); font-weight: 700; }
+  .prev-note {
+    margin: 0 14px 10px; padding: 8px 12px; border-radius: 10px;
+    background: var(--line-soft); color: var(--ink-soft); font-size: 12.5px;
+  }
   .gen-btn {
-    display: block; margin: 4px 14px 12px; width: calc(100% - 28px);
+    display: block; margin: 0; flex: 1; width: auto;
     padding: 13px; border: none; border-radius: var(--radius);
     background: var(--green); color: var(--on-green); font-size: 16px; font-weight: 600;
     cursor: pointer; font-family: inherit;
@@ -107,7 +118,12 @@
   .grid-cell span { display: block; font-size: 12.5px; line-height: 1.45; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .grid-cell span.sub { color: var(--ink-soft); font-size: 11.5px; }
   .grid-cell span.nob { color: var(--ink-soft); opacity: .55; }
-  .grid-cell .bdot { color: var(--baby); }
+  .bdot {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 15px; height: 15px; border-radius: 50%; margin-right: 4px;
+    background: var(--baby); color: #fff; font-size: 9.5px; font-style: normal;
+    font-weight: 700; vertical-align: 1px; flex-shrink: 0;
+  }
 
   /* ---------- 日详情 ---------- */
   .day { margin: 0 14px 18px; }
@@ -153,6 +169,9 @@
   .tag.noodle { background: var(--warn-soft); color: var(--warn); }
   /* 当季专属:过了这几个月就吃不到,排菜时优先级最高,页面上也标出来 */
   .tag.season { background: transparent; border: 1px solid var(--green); color: var(--green); }
+  /* 宝宝能不能吃:菜名旁边直接说,不用去读下面那条 */
+  .tag.baby-tag { background: var(--baby); color: #fff; font-weight: 700; }
+  .tag.baby-no { background: var(--line-soft); color: var(--ink-soft); }
 
   /* ---------- 购物清单 ---------- */
   .batch { margin: 0 14px 20px; }
@@ -202,7 +221,11 @@
   .filters button.on { background: var(--green-soft); border-color: transparent; color: var(--green); font-weight: 700; }
 
   .ing-block { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 10px; padding: 10px 14px 12px; }
-  .ing-row { display: grid; grid-template-columns: 1fr 132px; align-items: center; gap: 10px; padding: 5px 0; }
+  .ing-row { display: grid; grid-template-columns: 1fr 132px; align-items: center; gap: 10px; padding: 6px 0; }
+  .ing-keep { font-size: 11.5px; color: var(--ink-soft); line-height: 1.45; margin-top: 1px; }
+  .ing-keep.urgent { color: var(--baby); }
+  .cat-bar { margin-top: -4px; }
+  .cat-bar button { font-size: 12px; padding: 4px 10px; }
   .ing-row + .ing-row { border-top: 1px dashed var(--line); }
   .ing-name { font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ing-name .nb { font-size: 11px; color: var(--ink-soft); margin-left: 5px; }
@@ -273,7 +296,11 @@ const store = {
   set: (k, v) => { try { localStorage.setItem('fm_' + k, JSON.stringify(v)); } catch {} }
 };
 let week = store.get('week', null);
+let prevWeek = store.get('prevWeek', null);   // 重新生成时把旧的一周存下来,供回看
+let showPrev = false;
 let bought = store.get('bought', {});
+let shopFilter = store.get('shopFilter', null);
+let seasonCat = store.get('seasonCat', null);
 let view = 'menu';
 let overview = store.get('overview', true);
 let seasonMonth = store.get('seasonMonth', new Date().getMonth() + 1);
@@ -398,9 +425,12 @@ function generateWeek() {
   const bfStaples = config.meals.breakfast.staple_rotation;
   const grains = config.meals.breakfast.grain_rotation;
 
+  let grainIdx = 0;   // 杂粮日单独计数,保证一周里的杂粮品种不重样
+  const dinnerStaples = config.meals.dinner.staple_rotation || ['馒头'];
+  let stapleIdx = 0;
   const days = DAYS.map((_, i) => {
     const staple = bfStaples[i % bfStaples.length];
-    const grain = staple === '杂粮' ? grains[Math.floor(i / bfStaples.length) % grains.length] : null;
+    const grain = staple === '杂粮' ? grains[grainIdx++ % grains.length] : null;
     // 早餐不上炒菜:饮品 + 主食 + 蛋
     const breakfast = {
       drink: drinks[i % drinks.length],
@@ -412,16 +442,20 @@ function generateWeek() {
     const lunch = { meat: chooseDish(['荤','半荤'], 'lunch', i, lb), veg: chooseDish(['素'], 'lunch', i, lb), staple: '米饭' };
 
     // 面食仅晚餐、≤3 次/周:命中时从 主食 菜谱池里选,面条本身带荤带素,当晚不再另排荤菜
-    let dinnerStaple = '米饭', noodleDish = null;
+    // 不是面食夜的晚上不吃米饭,走馒头/花卷轮换(米饭只在午餐)
+    let noodleDish = null, dinnerStaple = null;
     if (noodle < config.constraints.noodle_per_week_max && i % 2 === 1) {
       noodleDish = chooseDish(['主食'], 'dinner', i, db);
       if (noodleDish) { dinnerStaple = noodleDish; noodle++; }
     }
+    if (!dinnerStaple) dinnerStaple = dinnerStaples[stapleIdx++ % dinnerStaples.length];
+    // 有汤的晚上:菜 + 汤合计 ≤2,所以汤夜不再排素菜
+    const hasSoup = soupDays.has(i);
     const dinner = {
       meat: noodleDish ? null : chooseDish(['荤','半荤'], 'dinner', i, db),
-      veg: chooseDish(['素'], 'dinner', i, db),
+      veg: hasSoup ? null : chooseDish(['素'], 'dinner', i, db),
       staple: dinnerStaple,
-      soup: soupDays.has(i) ? chooseDish(['汤'], 'dinner', i, db) : null
+      soup: hasSoup ? chooseDish(['汤'], 'dinner', i, db) : null
     };
     return { breakfast, lunch, dinner };
   });
@@ -481,9 +515,10 @@ const dishesOfDay = (d) => [d.lunch.meat, d.lunch.veg, d.lunch.staple,
                             d.dinner.meat, d.dinner.veg, d.dinner.staple, d.dinner.soup].filter(Boolean);
 const hasIng = (r, names) => r.main_ingredients.some(m => names.includes(m.name));
 
-function weekStats() {
+function weekStats(w) {
+  w = w || week;
   let fish = 0, liver = 0, noodles = 0, soups = 0, babyOk = 0, seasonal = 0, total = 0;
-  week.days.forEach(d => {
+  w.days.forEach(d => {
     dishesOfDay(d).forEach(id => {
       const r = R(id); if (!r) return;
       total++;
@@ -505,8 +540,8 @@ function weekStats() {
   };
 }
 
-function renderHealth() {
-  const s = weekStats();
+function renderHealth(w) {
+  const s = weekStats(w);
   const chip = (k) => {
     const c = s[k];
     // 宝宝那条用宝宝色,当季那条用常规色——一屏里只留一个强调色
@@ -571,17 +606,20 @@ function toggleBought(key, name) {
 // ---------- 渲染 ----------
 const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-function dishRow(rid, dayIdx, mealKey, slot) {
+function dishRow(rid, dayIdx, mealKey, slot, readonly) {
   const r = R(rid);
   if (!r) return '';
   const spicy = r.spicy ? `<span class="spicy">${'辣'.repeat(r.spicy)}</span>` : '';
   const noodleTag = r.category === '主食' ? `<span class="tag noodle">面食</span>` : '';
   // 限定月份的菜标「当季」:全年都能做的菜不标,免得满屏都是
   const seasonTag = r.season_months !== 'all' ? `<span class="tag season">当季</span>` : '';
+  // 宝宝能不能吃是掌勺时最先要看的一眼,所以标在菜名这一行,不只藏在下面那条
+  const babyTag = r.baby_variant.suitable ? `<span class="tag baby-tag">宝宝可吃</span>`
+                                          : `<span class="tag baby-no">宝宝不吃</span>`;
   return `<div class="dish">
-    <div><span class="dish-name">${esc(r.name)}</span>${spicy}${noodleTag}${seasonTag}
+    <div><span class="dish-name">${esc(r.name)}</span>${babyTag}${spicy}${noodleTag}${seasonTag}
       <span class="dish-meta">${r.cook_time_min}分${r.prep_ahead ? '·可提前' : ''}</span></div>
-    <button class="swap" onclick="swapDish(${dayIdx},'${mealKey}','${slot}')">换一换</button>
+    ${readonly ? '' : `<button class="swap" onclick="swapDish(${dayIdx},'${mealKey}','${slot}')">换一换</button>`}
   </div>${babyLine(r)}`;
 }
 function babyLine(r) {
@@ -594,8 +632,9 @@ function mealLoad(m) {
   return { mins: rs.reduce((s, r) => s + r.cook_time_min, 0), prepAhead: rs.some(r => r.prep_ahead) };
 }
 
-function renderGrid() {
-  const dot = (r) => `<span>${r.baby_variant.suitable ? '<i class="bdot">·</i>' : ''}${esc(r.name)}</span>`;
+function renderGrid(w) {
+  // 宝宝能吃的菜前面挂一个实心「宝」章,比原来的小圆点扫一眼就能看见
+  const dot = (r) => `<span>${r.baby_variant.suitable ? '<i class="bdot">宝</i>' : ''}${esc(r.name)}</span>`;
   const cell = (m, key) => {
     const rows = [];
     // 早餐全是模板项(饮品/主食/蛋),没有菜谱
@@ -613,19 +652,19 @@ function renderGrid() {
   };
   return `<div class="grid">
     <div class="grid-row head"><div></div><div>早</div><div>午</div><div>晚</div></div>
-    ${week.days.map((d, i) => `
-      <div class="grid-row ${i === todayIdx ? 'today' : ''}">
+    ${w.days.map((d, i) => `
+      <div class="grid-row ${i === todayIdx && w === week ? 'today' : ''}">
         <div class="grid-day">${DAYS[i].slice(1)}</div>
         ${cell(d.breakfast, 'breakfast')}${cell(d.lunch, 'lunch')}${cell(d.dinner, 'dinner')}
       </div>`).join('')}
   </div>
-  <div class="footnote">带 <i class="bdot" style="color:var(--baby)">·</i> 的菜宝宝能吃 · 今天这行有底色 · 切到「详细」看分菜时机和换一换</div>`;
+  <div class="footnote">挂 <i class="bdot">宝</i> 的菜宝宝能吃 · 今天这行有底色 · 切到「详细」看分菜时机和换一换</div>`;
 }
 
-function renderDays() {
-  return week.days.map((d, i) => `
+function renderDays(w, readonly) {
+  return w.days.map((d, i) => `
     <section class="day">
-      <div class="day-label"><em>${DAYS[i]}</em>${i === todayIdx ? '<span class="today-flag">今天</span>' : ''}</div>
+      <div class="day-label"><em>${DAYS[i]}</em>${i === todayIdx && !readonly ? '<span class="today-flag">今天</span>' : ''}</div>
       ${MEALS.map(([key, label]) => {
         const m = d[key];
         const { mins, prepAhead } = mealLoad(m);
@@ -641,11 +680,11 @@ function renderDays() {
             <div class="baby-row">${esc(babyRules.breakfast_adaptation[stapleKey] || babyRules.breakfast_adaptation['杂粮'])}</div>
             <div class="dish"><span class="dish-name">${esc(m.egg)}</span><span class="tag">蛋</span></div>`;
         } else {
-          inner = [m.meat && dishRow(m.meat, i, key, 'meat'),
-                   m.veg && dishRow(m.veg, i, key, 'veg'),
-                   R(m.staple) ? dishRow(m.staple, i, key, 'staple')
+          inner = [m.meat && dishRow(m.meat, i, key, 'meat', readonly),
+                   m.veg && dishRow(m.veg, i, key, 'veg', readonly),
+                   R(m.staple) ? dishRow(m.staple, i, key, 'staple', readonly)
                                : `<div class="dish"><span class="dish-name">${esc(m.staple)}</span><span class="tag">主食</span></div>`,
-                   m.soup && dishRow(m.soup, i, key, 'soup')].filter(Boolean).join('');
+                   m.soup && dishRow(m.soup, i, key, 'soup', readonly)].filter(Boolean).join('');
         }
         return `<div class="meal">
           <div class="meal-head"><span class="meal-name">${label}</span>
@@ -656,24 +695,34 @@ function renderDays() {
 }
 
 function renderMenu() {
+  // 上周菜单:只读回看,用来「上周吃过什么、这周别重样」,不参与换一换
+  if (showPrev) {
+    if (!prevWeek) return `<div class="empty">还没有上周菜单。<br>下次重新生成时,这一周会自动存成上周。</div>`;
+    return `<div class="prev-note">这是上周的菜单(重新生成时自动存下来的),只能看不能改。</div>`
+      + renderHealth(prevWeek)
+      + (overview ? renderGrid(prevWeek) : renderDays(prevWeek, true));
+  }
   if (!week) return `<div class="empty">还没有本周菜单。<br>点上面的按钮,10 秒生成。</div>`;
-  return renderHealth() + `
+  return renderHealth(week) + `
     <div class="ov-toggle">
       <button class="${overview ? 'on' : ''}" onclick="setOverview(true)">一周概览</button>
       <button class="${overview ? '' : 'on'}" onclick="setOverview(false)">详细</button>
-    </div>` + (overview ? renderGrid() : renderDays());
+    </div>` + (overview ? renderGrid(week) : renderDays(week, false));
 }
 function setOverview(v) { overview = v; store.set('overview', v); render(); }
+function togglePrev() { showPrev = !showPrev; render(); }
 
 // 早餐是模板项不是菜谱,单列一块常备清单(按包装买,不算克重)
 function breakfastNeeds() {
-  const drinks = {}, staples = {};
+  const drinks = {}, staples = {}, dinnerStaples = {};
   week.days.forEach(d => {
     const dr = d.breakfast.drink, st = d.breakfast.staple;   // st 可能是「杂粮(玉米)」
     drinks[dr] = (drinks[dr] || 0) + 1;
     staples[st] = (staples[st] || 0) + 1;
+    // 晚餐的馒头/花卷和早餐主食一样是按包装买的模板项,不是菜谱,得单列出来才不会漏买
+    if (!R(d.dinner.staple)) dinnerStaples[d.dinner.staple] = (dinnerStaples[d.dinner.staple] || 0) + 1;
   });
-  return { drinks, staples, eggs: 7 * (config.family.adults + 1) };
+  return { drinks, staples, dinnerStaples, eggs: 7 * (config.family.adults + 1) };
 }
 
 function renderBreakfastBlock() {
@@ -681,17 +730,29 @@ function renderBreakfastBlock() {
   const rows = (obj) => Object.entries(obj)
     .map(([k, v]) => `<div class="bf-item"><span>${esc(k)}</span><span class="times">${v} 天</span></div>`).join('');
   return `<section class="batch">
-    <div class="batch-head"><span>早餐常备</span><span class="prog">按包装买</span></div>
-    <div class="cat-block"><div class="cat-title">饮品</div>${rows(n.drinks)}</div>
-    <div class="cat-block"><div class="cat-title">主食</div>${rows(n.staples)}</div>
+    <div class="batch-head"><span>常备</span><span class="prog">按包装买</span></div>
+    <div class="cat-block"><div class="cat-title">早餐饮品</div>${rows(n.drinks)}</div>
+    <div class="cat-block"><div class="cat-title">早餐主食</div>${rows(n.staples)}</div>
+    ${Object.keys(n.dinnerStaples).length ? `<div class="cat-block"><div class="cat-title">晚餐主食</div>${rows(n.dinnerStaples)}</div>` : ''}
     <div class="cat-block"><div class="cat-title">蛋</div>
       <div class="bf-item"><span>鸡蛋</span><span class="times">约 ${n.eggs} 个 / 周</span></div></div>
   </section>`;
 }
 
+function setShopFilter(k) {
+  shopFilter = shopFilter === k ? null : k;
+  store.set('shopFilter', shopFilter); render();
+}
+
 function renderShop() {
   if (!week) return `<div class="empty">先生成本周菜单,买菜清单会自动出来。</div>`;
-  return renderBreakfastBlock() + shoppingBatches().map(b => {
+  const batches = shoppingBatches();
+  // 到店只想看一批的时候,把另一批和早餐常备收起来
+  const opts = [['bf', '早餐常备'], ...batches.map((b, i) => ['b' + i, Object.keys(config.shopping.batch_coverage)[i] + '采购'])];
+  const filters = `<div class="filters">${opts.map(([k, label]) =>
+    `<button class="${shopFilter === k ? 'on' : ''}" onclick="setShopFilter('${k}')">${esc(label)}</button>`).join('')}</div>`;
+  const show = (k) => !shopFilter || shopFilter === k;
+  return filters + (show('bf') ? renderBreakfastBlock() : '') + batches.filter(b => show(b.key)).map(b => {
     const all = Object.values(b.byCat).flat();
     const done = all.filter(it => bought[b.key + '|' + it.name]).length;
     return `
@@ -731,6 +792,10 @@ function toggleSeasonFilter(k) {
   store.set('seasonFilter', seasonFilter); render();
 }
 function setSeasonTab(t) { seasonTab = t; store.set('seasonTab', t); render(); }
+function setSeasonCat(c) {
+  seasonCat = seasonCat === c ? null : c;
+  store.set('seasonCat', seasonCat); render();
+}
 
 function renderSeason() {
   const mm = seasonMonth;
@@ -744,8 +809,14 @@ function renderSeason() {
     fresh: { label: '当天吃',   ing: i => i.same_day, rec: r => hasIng(r, SAME_DAY) }
   };
   const f = seasonFilter ? FILTERS[seasonFilter] : null;
-  const shownIngs = f && f.ing ? ings.filter(f.ing) : ings;
+  let shownIngs = f && f.ing ? ings.filter(f.ing) : ings;
   const shownRecs = f && f.rec ? recs.filter(f.rec) : recs;
+  // 品类筛选:食材多了以后按叶菜/水果/水产等分流,只在食材页生效
+  const cats = [...new Set(ingredients.items.map(i => i.category))];
+  if (seasonCat) shownIngs = shownIngs.filter(i => i.category === seasonCat);
+  const catBar = seasonTab === 'ing' ? `<div class="filters cat-bar">${cats.map(c =>
+    `<button class="${seasonCat === c ? 'on' : ''}" onclick="setSeasonCat('${esc(c)}')">${esc(c)} ${
+      ings.filter(i => i.category === c).length}</button>`).join('')}</div>` : '';
 
   const strip = `<div class="month-strip">${MONTHS.map(m =>
     `<button class="${m === mm ? 'on' : ''} ${m === month ? 'now' : ''}" onclick="setSeasonMonth(${m})">${m}</button>`
@@ -768,15 +839,22 @@ function renderSeason() {
       <div class="ing-block"><div class="cat-title">${esc(cat)}</div>
         ${list.map(i => {
           const ms = monthsOf(i.season_months);
+          const s = i.storage;
+          // 买回来怎么放、几天内吃完,和在不在季一样是买菜当场要看的
+          const keep = `${esc(s.method)} · ${i.same_day ? '当天吃完' : s.max_days + ' 天内吃完'}${
+            s.batch_priority === 1 ? ' · 先吃' : s.batch_priority === 3 ? ' · 耐储' : ''}`;
           return `<div class="ing-row">
-            <div class="ing-name">${esc(i.name)}${i.same_day ? '<span class="badge-today">当天吃</span>' : ''}${
-              i.baby_ok ? '' : '<span class="nb">宝宝不吃</span>'}</div>
+            <div>
+              <div class="ing-name">${esc(i.name)}${i.same_day ? '<span class="badge-today">当天吃</span>' : ''}${
+                i.baby_ok ? '' : '<span class="nb">宝宝不吃</span>'}</div>
+              <div class="ing-keep ${s.batch_priority === 1 ? 'urgent' : ''}">${keep}</div>
+            </div>
             <div class="bars">${MONTHS.map(m =>
               `<i class="${ms.includes(m) ? 'on' : ''} ${m === mm ? 'sel' : ''}"></i>`).join('')}</div>
           </div>`;
         }).join('')}
       </div>`).join('') +
-      `<div class="legend">每行右侧是全年 12 个月的上市情况,深色=在季,方框=当前选中的月份。<br>「当天吃」的食材不隔夜,排菜时只会排在采购当天。</div>`;
+      `<div class="legend">每行右侧是全年 12 个月的上市情况,深色=在季,方框=当前选中的月份。<br>名字下面那行是储存方式和该吃完的期限,暖色=到手先吃。「当天吃」的食材不隔夜,排菜时只会排在采购当天。</div>`;
   } else {
     const byCat = {};
     shownRecs.forEach(r => (byCat[r.category] = byCat[r.category] || []).push(r));
@@ -799,7 +877,7 @@ function renderSeason() {
       <span class="chip"><i class="dot"></i>${mm} 月在季 <b>${ings.length}</b>/${ingredients.items.length} 食材</span>
       <span class="chip"><i class="dot"></i>可做 <b>${recs.length}</b>/${recipes.items.length} 道菜</span>
     </div>
-    ${filters}${tabs}${body}
+    ${filters}${tabs}${catBar}${body}
   </div>`;
 }
 
@@ -833,7 +911,10 @@ function render() {
   document.getElementById('week-label').textContent =
     week ? `${week.month}月 · ${new Date(week.generatedAt).getMonth()+1}/${new Date(week.generatedAt).getDate()} 生成` : `${month}月 · 菜谱 ${recipes.items.length} 道`;
   let html = '';
-  if (view === 'menu') html = `<button class="gen-btn" onclick="regen()">${week ? '重新生成本周菜单' : '生成本周菜单'}</button>` + renderMenu();
+  if (view === 'menu') html = `<div class="menu-top">
+      <button class="gen-btn" onclick="regen()">${week ? '重新生成本周菜单' : '生成本周菜单'}</button>
+      <button class="prev-btn ${showPrev ? 'on' : ''}" onclick="togglePrev()">${showPrev ? '回到本周' : '看上周'}</button>
+    </div>` + renderMenu();
   if (view === 'shop') html = renderShop();
   if (view === 'season') html = renderSeason();
   if (view === 'baby') html = renderBaby();
@@ -841,7 +922,11 @@ function render() {
   document.querySelectorAll('nav button').forEach(btn =>
     btn.classList.toggle('on', btn.dataset.view === view));
 }
-function regen() { week = generateWeek(); bought = {}; store.set('week', week); store.set('bought', bought); render(); }
+function regen() {
+  if (week) { prevWeek = week; store.set('prevWeek', prevWeek); }   // 生成新的之前先留档
+  week = generateWeek(); bought = {}; showPrev = false;
+  store.set('week', week); store.set('bought', bought); render();
+}
 document.querySelectorAll('nav button').forEach(btn =>
   btn.addEventListener('click', () => { view = btn.dataset.view; render(); }));
 render();
