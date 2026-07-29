@@ -1,74 +1,71 @@
-# SOP — 新仓库搭建与每次开工流程
+# SOP — 开工流程与发布流程
 
 配套 `CLAUDE.md`(项目规格)使用。本文只讲**怎么干**,不讲菜谱规则。
 
 ---
 
-## 一、一次性:新建仓库并打通推送权限
+## 一、环境与分支
 
-顺序不能反。**权限没验通之前不要开始生成内容**——本项目吃过亏:两批 20 道菜全部做完才发现推不上去。
+一个仓库两条分支,`main` 永远是「已验证」状态。
 
-### 1. 在 GitHub 新建仓库
-
-<https://github.com/new> → 仓库名建议 `family-menu` → 可选 Private → **不要**勾 Add README(留空仓库,迁移时省一次合并)。
-
-### 2. 授权 ≠ 安装(本项目卡了一整轮的坑)
-
-GitHub 上这是两件独立的事,**只做授权不会有任何仓库权限**:
-
-| | 位置 | 给什么 |
+| | 位置 | 说明 |
 |---|---|---|
-| Authorized | Applications → Authorized GitHub Apps | 只给身份令牌(Verify identity / Act on your behalf) |
-| **Installed** | Applications → **Installed GitHub Apps** | **仓库读写权限,范围由安装时选的仓库决定** |
+| 仓库 | `thinkryh/family-menu-pro` | Public,唯一的代码来源 |
+| 正式站 | <https://thinkryh.github.io/family-menu-pro/> | Pages 发布源 = `main` 分支 `/docs`,push 后自动更新 |
+| `main` | 只接受来自 `dev` 的合并 | 不直接在上面提交 |
+| `dev` | 日常干活分支 | 加菜谱、改 UI、改数据都在这里 |
 
-症状:clone / fetch 正常,`git push` 一律 403。去 Authorized GitHub Apps 点开 Claude,若显示 "Claude has not been installed on any accounts you have access to",就是这个原因。
-
-**安装入口(关键):** <https://github.com/apps/claude> → Install → 选账号 → Repository access 选 All repositories 或勾上目标仓库 → Install。
-
-从 claude.ai 的 Connectors 页面反复 Disconnect / 重连**解决不了**,那个流程只走授权、不含安装环节;在 GitHub 侧 Revoke 再重连也一样。
-
-装完验证:<https://github.com/settings/installations> 的 Installed GitHub Apps 里出现 Claude 即可。注意**中途安装不会回填到已运行的会话**,当前会话若仍推不动就新开一个。
-
-> 兜底方案(不想装 App 时):细粒度 token,<https://github.com/settings/personal-access-tokens/new> → 只勾目标仓库 → Permissions 里 **Contents: Read and write** → 有效期 7 天,用完即 Revoke。
-
-### 3. 【关键】开工前先验证推送
-
-新会话里第一件事,不要跳过:
+### 发布流程
 
 ```bash
-git commit --allow-empty -m "chore: verify write access"
-git push -u origin <branch>
+git checkout dev
+# ... 改数据或模板 ...
+node scripts/build.js          # 校验 + 构建 docs/index.html
+# 本地验证:直接用浏览器打开 docs/index.html,点「生成本周菜单」走一遍
+git add -A && git commit -m "..."
+git push origin dev
+
+# 确认没问题,才推正式站
+git checkout main
+git merge dev                  # 同一条历史,永远是 fast-forward
+git push origin main           # Pages 1-2 分钟后更新
+git checkout dev               # 切回来继续干活
 ```
 
-- 推成功 → 权限没问题,`git reset --hard HEAD~1` 撤掉这个空提交,开始干活
-- 返回 403 → **停下来先解决权限**,不要往下做内容
+**验证手段**(按成本排序,通常第一条就够):
 
-### 4. 迁移现有项目到新仓库(已完成,留作参考)
+1. 本地打开 `docs/index.html` — 单文件零依赖,和线上完全一致
+2. 无头浏览器自检 — 让 Claude 跑一遍生成菜单、切页面、看有无 JS 报错
+3. 想在手机上看 → 让 Claude 发布成 artifact 私有链接
 
-要点:项目内容作为**仓库根目录**,不嵌 `family-menu/` 子目录。想保留提交历史就用 `subtree split` 提取子目录、把它提升为根:
+### 回滚
+
+正式站出问题,不要手忙脚乱改:
 
 ```bash
-# 在旧仓库里,把 family-menu/ 子目录切成一段独立历史
-git subtree split --prefix=family-menu -b fm-root
-
-# 灌进新仓库(新仓库须为空仓库,建时不要勾 README)
-git clone https://github.com/<你>/family-menu.git /path/new
-cd /path/new && git fetch /path/old fm-root && git reset --hard FETCH_HEAD
-git push -u origin main
+git checkout main && git revert <坏提交> && git push origin main
 ```
 
-若旧成果只剩补丁文件(会话容器已回收),先 `git am < family-menu-all.patch` 还原再做上面这步。
+Pages 会自动重新部署。因为两条分支同源,回滚不会让 `dev` 和 `main` 产生分叉。
+
+> **为什么不用两个仓库做测试站/正式站:** 试过,不划算。两个仓库没有共同祖先时,同步只能 force-push,没有三方合并也没有冲突提示;还要维护两份文档、两套设置。这个页面是单文件零后端,本地打开就是完整预览,不需要第二个线上环境。若哪天真的需要可访问的预览地址,正确做法是同一仓库配 Actions 把 `dev` 发到同站点的 `/preview/` 子路径,而不是拆仓库。
 
 ---
 
 ## 二、每次新开会话的开工流程
 
-1. **上传/挂载仓库**,让 Claude 读 `CLAUDE.md` 和 `data/` 现状
-2. **跑权限验证**(上面第 3 步)——每个新会话都要跑,凭证不跨会话继承
-3. **对账**:如果你这次上传了 zip,先让 Claude `diff` 对比再覆盖。压缩包常常基于更早的快照,直接解压会冲掉已完成的批次
-4. 明确本次目标(例:"第三批 10 道,补齐阜阳家常剩余")
-5. 干活 → 校验 → 构建 → 提交 → 推送
-6. **收尾**:确认 `git log` 已推上远端;若推送受阻,让 Claude 导出补丁发给你备份
+1. **挂载仓库**,让 Claude 读 `CLAUDE.md`、本文件和 `data/` 现状
+2. **切到 `dev`**:`git checkout dev && git pull origin dev`
+3. **验证推送权限**——每个新会话都要跑,凭证不跨会话继承:
+   ```bash
+   git commit --allow-empty -m "chore: verify write access"
+   git push origin dev
+   ```
+   推成功 → `git reset --hard HEAD~1` 撤掉,开始干活;返回 403 → **停下来先解决权限**(见附录 A),不要往下做内容
+4. **对账**:如果你这次上传了 zip,先让 Claude `diff` 对比再覆盖。压缩包常常基于更早的快照,直接解压会冲掉已完成的工作
+5. 明确本次目标(例:"加 10 道秋冬时令素菜")
+6. 干活 → 校验 → 构建 → 提交 → 推 `dev`
+7. **收尾**:确认已推上远端;验证通过后按第一节合并到 `main` 发布
 
 ---
 
@@ -82,9 +79,10 @@ git push -u origin main
 | 2. 写菜谱 | 编辑 `data/recipes.json` | 按 `_schema`;`baby_variant` 逐条对照 `baby_rules.json` |
 | 3. 校验 | `node scripts/build.js --validate` | 必须零报错才继续 |
 | 4. 构建 | `node scripts/build.js` | 生成 `docs/index.html`,**禁止手改该文件**(改 `app/template.html`) |
-| 5. 页面自检 | 无头浏览器打开 index.html,点「生成本周菜单」 | 确认无 JS 报错、排菜跑通 |
+| 5. 页面自检 | 浏览器打开 `docs/index.html`,点「生成本周菜单」 | 确认无 JS 报错、排菜跑通 |
 | 6. 呈报 | 表格列出菜名 / 类别 / 辣度 / 宝宝适配 | 宝宝不适配的必须说明理由 |
-| 7. 入库 | 你确认后 commit + push | commit message 用英文 |
+| 7. 入库 | 你确认后 commit + push `dev` | commit message 用英文 |
+| 8. 发布 | 验证通过后 merge 到 `main` 并 push | 见第一节 |
 
 ### 已知卡点(build.js 会拦下的)
 
@@ -124,10 +122,70 @@ git push -u origin main
 ### 时令覆盖现状
 
 食材库已跨季:夏季(秋葵、西葫芦、红薯叶、豇豆、毛豆、玉米、茭白)与秋冬季(白菜、娃娃菜、茼蒿、菜心、莴笋、油麦菜)都有。
-**当前 7 月在季可排的菜约占全库 2/3**,秋冬菜到季自动进池,无需改代码。每月按第五节更新 `season_months` 即可。
+**当前 7 月在季可排的菜约占全库 2/3**,秋冬菜到季自动进池,无需改代码。
+
+### 尚未实现
+
+`CLAUDE.md` 里写的评分函数(时令分 + 营养缺口填补 + 耗时匹配 + 食材复用 − 重复惩罚)还没做,当前是「随机取候选 + 硬约束过滤」。70 道菜的池子够大,随机效果尚可;觉得排得不够聪明时再做。
 
 ---
 
 ## 五、月度时令更新
 
-每月一次:检索下月本地(config.location)应季蔬果(多信源交叉,不依赖单一来源)→ 更新 `ingredients.json` 的 `season_months` 并补新食材 → 重新构建 → 推送。此流程后续沉淀为 skill。
+每月一次:检索下月本地(`config.location`)应季蔬果(多信源交叉,不依赖单一来源)→ 更新 `ingredients.json` 的 `season_months` 并补新食材 → 重新构建 → 推 `dev` → 验证后合并 `main`。此流程后续沉淀为 skill。
+
+---
+
+## 附录 A — 仓库与权限排障
+
+### 授权 ≠ 安装(本项目卡了一整轮的坑)
+
+GitHub 上这是两件独立的事,**只做授权不会有任何仓库权限**:
+
+| | 位置 | 给什么 |
+|---|---|---|
+| Authorized | Applications → Authorized GitHub Apps | 只给身份令牌(Verify identity / Act on your behalf) |
+| **Installed** | Applications → **Installed GitHub Apps** | **仓库读写权限,范围由安装时选的仓库决定** |
+
+症状:clone / fetch 正常,`git push` 一律 403。去 Authorized GitHub Apps 点开 Claude,若显示 "Claude has not been installed on any accounts you have access to",就是这个原因。
+
+**安装入口(关键):** <https://github.com/apps/claude> → Install → 选账号 → Repository access 选 All repositories 或勾上目标仓库 → Install。
+
+从 claude.ai 的 Connectors 页面反复 Disconnect / 重连**解决不了**,那个流程只走授权、不含安装环节;在 GitHub 侧 Revoke 再重连也一样。
+
+装完验证:<https://github.com/settings/installations> 的 Installed GitHub Apps 里出现 Claude 即可。注意**中途安装不会回填到已运行的会话**,当前会话若仍推不动就新开一个。
+
+> 兜底方案(不想装 App 时):细粒度 token,<https://github.com/settings/personal-access-tokens/new> → 只勾目标仓库 → Permissions 里 **Contents: Read and write** → 有效期 7 天,用完即 Revoke。
+
+### 会话内做不到的事
+
+以下操作被会话代理拦截,只能你在网页上点:
+
+- 创建仓库(`POST /user/repos`)
+- 改仓库可见性
+- 开启 / 配置 GitHub Pages(`POST /repos/{owner}/{repo}/pages`)
+
+### Pages 的限制
+
+- 发布源只能是**仓库根目录**或 **`/docs`**,不支持 `/app`——所以构建产物落在 `docs/`
+- 一个仓库只能挂一个 Pages 站点
+- 站点一律公开可访问;私有仓库配 GitHub Pro 只是允许「从私有仓库构建」,带访问控制的 Pages 是 Enterprise 才有的
+- `docs/.nojekyll` 必须保留,否则 Jekyll 会吞掉下划线开头的文件
+
+### 迁移历史(留作参考)
+
+需要把子目录提升为仓库根、同时保留历史:
+
+```bash
+git subtree split --prefix=<子目录> -b extracted
+git clone <新仓库> /path/new
+cd /path/new && git fetch /path/old extracted && git reset --hard FETCH_HEAD
+git push -u origin main
+```
+
+需要丢弃旧历史、只留干净的一次提交(本项目公开仓库就是这么建的):
+
+```bash
+git checkout --orphan clean-main && git add -A && git commit -m "..."
+git push <新仓库> clean-main:main
+```
