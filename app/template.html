@@ -396,9 +396,15 @@ const store = {
   get: (k, d) => { try { return JSON.parse(localStorage.getItem('fm_' + k)) ?? d; } catch { return d; } },
   set: (k, v) => { try { localStorage.setItem('fm_' + k, JSON.stringify(v)); } catch {} }
 };
-let week = store.get('week', null);
+// localStorage 里可能存着旧版本或残缺的菜单(这个页面的数据结构改过几次)。
+// 形状不对就当没有——否则渲染时 days[i].lunch 取不到,整页白屏,用户还无从下手。
+const validWeek = (w) => !!w && Array.isArray(w.days) && w.days.length === DAYS.length
+  && w.days.every(d => d && d.breakfast && d.lunch && d.dinner);
+const loadWeek = (k) => { const w = store.get(k, null); return validWeek(w) ? w : null; };
+
+let week = loadWeek('week');
 let bought = store.get('bought', {});
-let prevWeek = store.get('prevWeek', null);    // 重排前的上一周,撤销用
+let prevWeek = loadWeek('prevWeek');           // 重排前的上一周,撤销用
 let prevBought = store.get('prevBought', null);
 let shopFilter = store.get('shopFilter', null);
 let seasonCat = store.get('seasonCat', null);
