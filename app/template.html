@@ -78,6 +78,9 @@
     cursor: pointer; font-family: inherit;
   }
   .gen-btn:active { opacity: .85; }
+  .gen-btn.secondary { background: var(--card); color: var(--ink-soft); border: 1px solid var(--line); font-weight: 400; }
+  .chip.ok-line { color: var(--ink-soft); }
+  .chip.link { border-style: dashed; color: var(--green); cursor: pointer; font-family: inherit; }
 
   /* ---------- 本周体检 ---------- */
   .health { margin: 0 14px 12px; display: flex; gap: 7px; flex-wrap: wrap; }
@@ -116,7 +119,9 @@
   .grid-day { font-size: 12px; font-weight: 700; color: var(--green); display: flex; align-items: center; justify-content: center; border-right: 1px solid var(--line-soft); }
   .grid-cell { padding: 7px 8px; border-right: 1px solid var(--line-soft); min-width: 0; }
   .grid-cell:last-child { border-right: none; }
-  .grid-cell span { display: block; font-size: 12.5px; line-height: 1.45; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* 菜名允许折到两行:390px 下每格只有约 100px,截断成「玉米胡萝卜排…」等于没显示 */
+  .grid-cell span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    font-size: 12.5px; line-height: 1.4; overflow: hidden; }
   .grid-cell span.sub { color: var(--ink-soft); font-size: 11.5px; }
   .grid-cell span.nob { color: var(--ink-soft); opacity: .55; }
   .bdot {
@@ -148,9 +153,11 @@
   .dish-name { font-size: 16px; }
   .dish-meta { font-size: 12px; color: var(--ink-soft); margin-left: 6px; font-variant-numeric: tabular-nums; }
   .spicy { color: var(--spice); font-size: 12px; margin-left: 4px; }
+  /* 热区撑到 44px(触控下限),再用负 margin 抵消视觉膨胀——直接加高会让详细页多出 500 多像素 */
   .swap {
     border: 1px solid var(--line); background: none; border-radius: 8px; font-family: inherit;
-    font-size: 12px; color: var(--green); padding: 3px 9px; cursor: pointer; flex-shrink: 0;
+    font-size: 12px; color: var(--green); cursor: pointer; flex-shrink: 0;
+    padding: 15px 9px; margin: -12px 0; line-height: 1;
   }
   .swap:active { background: var(--green-soft); }
   /* 签名元素:宝宝行 */
@@ -194,13 +201,19 @@
   .shop-item .grow { flex: 1; min-width: 0; }
   .s-name { font-size: 15px; }
   .shop-qty { font-variant-numeric: tabular-nums; color: var(--ink-soft); flex-shrink: 0; margin-top: 1px; }
-  .storage-tip { font-size: 12px; color: var(--baby); margin-top: 1px; }
-  .storage-tip.plain { color: var(--ink-soft); }
+  .storage-tip { font-size: 12px; color: var(--ink-soft); margin-top: 1px; }
+  .storage-tip b { color: var(--baby); }
   .badge-today { font-size: 10.5px; padding: 1px 7px; border-radius: 999px; margin-left: 6px;
     background: var(--spice); color: #fff; vertical-align: 1px; white-space: nowrap; }
-  .bf-item { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 5px 0; font-size: 14.5px; }
+  .bf-item { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; font-size: 14.5px; cursor: pointer; }
   .bf-item + .bf-item { border-top: 1px dashed var(--line); }
-  .bf-item .times { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .bf-item .times { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; flex-shrink: 0; margin-top: 3px; }
+  .bf-item.done .s-name, .bf-item.done .times { text-decoration: line-through; opacity: .45; }
+  .bf-sub { font-size: 11.5px; color: var(--ink-soft); margin-top: 1px; }
+  .copy-mini {
+    border: 1px solid var(--line); background: var(--card); color: var(--green); font-family: inherit;
+    font-size: 11.5px; padding: 3px 10px; border-radius: 8px; cursor: pointer; margin-left: 8px;
+  }
 
   /* ---------- 时令指南 ---------- */
   .season-page { margin: 0 14px; }
@@ -223,9 +236,12 @@
   .filters button.on { background: var(--green-soft); border-color: transparent; color: var(--green); font-weight: 700; }
 
   .ing-block { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 10px; padding: 10px 14px 12px; }
-  .ing-row { display: grid; grid-template-columns: 1fr 132px; align-items: center; gap: 10px; padding: 6px 0; }
+  .ing-row { display: grid; grid-template-columns: 1fr 118px; align-items: center; gap: 10px; padding: 7px 0; cursor: pointer; }
+  .ing-row.open { background: var(--line-soft); border-radius: 10px; margin: 2px -6px; padding: 7px 6px; }
+  .ing-when { text-align: right; }
+  .ing-span { font-size: 11.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; margin-bottom: 2px; }
   .ing-keep { font-size: 11.5px; color: var(--ink-soft); line-height: 1.45; margin-top: 1px; }
-  .ing-keep.urgent { color: var(--baby); }
+  .ing-keep b { color: var(--baby); }
   .cat-bar { margin-top: -4px; }
   .cat-bar button { font-size: 12px; padding: 4px 10px; }
   .ing-row + .ing-row { border-top: 1px dashed var(--line); }
@@ -233,7 +249,8 @@
   .ing-name .nb { font-size: 11px; color: var(--ink-soft); margin-left: 5px; }
   .bars { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; }
   .bars i { height: 14px; border-radius: 2px; background: var(--line-soft); display: block; }
-  .bars i.on { background: var(--green); opacity: .38; }
+  .bars i { height: 10px; }
+  .bars i.on { background: var(--green); opacity: .7; }   /* 原来 .38 太淡,深色底上几乎看不见 */
   .bars i.sel { outline: 1.5px solid var(--green); outline-offset: 1px; }
   .bars i.on.sel { opacity: 1; }
   .legend { font-size: 11px; color: var(--ink-soft); padding: 2px 2px 10px; line-height: 1.7; }
@@ -261,7 +278,8 @@
 
   /* ---------- 宝宝页 ---------- */
   .baby-page { margin: 0 14px; }
-  .sched { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 4px 14px; margin-bottom: 14px; }
+  .sched { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px 4px; margin-bottom: 14px; }
+  .sched-title { font-size: 14px; color: var(--baby); margin-bottom: 6px; }
   .sched-row { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px dashed var(--line); font-size: 14px; }
   .sched-row:last-child { border-bottom: none; }
   .sched-time { font-variant-numeric: tabular-nums; color: var(--baby); font-weight: 600; flex-shrink: 0; width: 92px; }
@@ -283,7 +301,7 @@
   }
   nav .inner { display: flex; width: 100%; max-width: 720px; margin: 0 auto; }
   nav button {
-    flex: 1; padding: 12px 0 10px; border: none; background: none; font-family: inherit;
+    flex: 1; padding: 16px 0 14px; border: none; background: none; font-family: inherit;
     font-size: 14px; color: var(--ink-soft); cursor: pointer;
   }
   nav button.on { color: var(--green); font-weight: 700; }
@@ -306,8 +324,9 @@
   /* 宝宝标记:只标例外。能吃的给一个小钮,想看分菜时机才展开 */
   .baby-mini {
     border: 1px solid var(--baby); background: none; color: var(--baby);
-    font-family: inherit; font-size: 10.5px; padding: 0 6px; border-radius: 999px;
-    margin-left: 6px; cursor: pointer; vertical-align: 1px; line-height: 17px;
+    font-family: inherit; font-size: 10.5px; border-radius: 999px;
+    cursor: pointer; vertical-align: 1px; line-height: 17px;
+    padding: 13px 6px; margin: -13px 0 -13px 6px;   /* 同上:热区 44px,视觉不变 */
   }
   .baby-mini.on { background: var(--baby); color: #fff; }
   .bdot.no { background: #a9aca6; }
@@ -360,10 +379,14 @@
   .card-back p { font-size: 12px; color: var(--baby-ink); line-height: 1.55; }
   .card-back p.mod { margin-top: 4px; opacity: .85; }
   .card-back p.na { color: var(--ink-soft); }
-  .card-actions { display: flex; flex-direction: column; gap: 5px; margin-top: 9px; }
-  .card-actions button { font-family: inherit; font-size: 12px; padding: 6px 0; border-radius: 8px; cursor: pointer; }
-  .card-actions .flip { border: 1px solid var(--line); background: none; color: var(--ink-soft); }
-  .card-actions .take { border: none; background: var(--green); color: var(--on-green); font-weight: 700; }
+  .card { cursor: pointer; }
+  .card-kind { font-size: 10.5px; color: var(--ink-soft); letter-spacing: 2px; margin-bottom: 2px; }
+  .card-foot { margin-top: auto; }   /* 提示与按钮绑在一起贴底,三张卡才对得齐 */
+  .card-hint { font-size: 10.5px; color: var(--ink-soft); margin: 8px 0 5px; text-align: center; }
+  .card .take {
+    width: 100%; border: none; background: var(--green); color: var(--on-green); font-weight: 700;
+    font-family: inherit; font-size: 12px; padding: 10px 0; border-radius: 8px; cursor: pointer;
+  }
   @media (max-width: 380px) {
     .cards { grid-template-columns: 1fr; }
     .card { min-height: 0; }
@@ -412,7 +435,8 @@ let openRec = null;                            // 时令页展开的菜谱 id
 let openBaby = store.get('openBaby', {});      // 详细页展开了宝宝行的菜位
 let lastSwap = null;                           // 最近一次「换一换」,用于撤销
 let seasonQ = '';                              // 时令页搜索词
-let copied = false;                            // 「复制清单」的短暂反馈
+let copied = null;                             // 「复制」的短暂反馈,值是批次 key
+let healthOpen = false;                        // 体检条是否展开全部数字
 let draw = store.get('draw', null);            // 今晚吃什么:当前三个候选
 let drawSlots = store.get('drawSlots', {});    // 今晚吃什么:条件槽
 let view = 'menu';
@@ -704,21 +728,31 @@ function weekStats(w) {
   };
 }
 
-// 体检条只做「本周达标没有」的仪表盘,不兼作筛选器——点进去挑菜不是这一行该干的事
+// 体检条只做「本周达标没有」的仪表盘,不兼作筛选器。
+// 遵守「只标例外」:达标的四项合成一句,超标/缺口的才单独出 chip;想看全部数字点一下展开。
+function toggleHealth() { healthOpen = !healthOpen; render(); }
+
 function renderHealth(w) {
   const s = weekStats(w);
+  const isBad = (c) => c.mode === 'range' ? (c.n < c.min || c.n > c.max)
+                     : c.mode === 'max' ? c.n > c.max : false;
   const chip = (k) => {
     const c = s[k];
-    // 宝宝那条用宝宝色,当季那条用常规色——一屏里只留一个强调色
     if (c.mode === 'ratio') return `<span class="chip ${k === 'baby' ? 'baby' : ''}"><i class="dot"></i>${c.label} <b>${c.n}/${c.target}</b></span>`;
-    if (c.mode === 'range') {
-      const bad = c.n < c.min || c.n > c.max;
-      return `<span class="chip ${bad ? 'warn' : ''}"><i class="dot"></i>${c.label} <b>${c.n}</b>/${c.min}-${c.max}</span>`;
-    }
-    const bad = c.n > c.max;
-    return `<span class="chip ${bad ? 'warn' : ''}"><i class="dot"></i>${c.label} <b>${c.n}</b>/≤${c.max}</span>`;
+    if (c.mode === 'range') return `<span class="chip ${isBad(c) ? 'warn' : ''}"><i class="dot"></i>${c.label} <b>${c.n}</b>/${c.min}-${c.max}</span>`;
+    return `<span class="chip ${isBad(c) ? 'warn' : ''}"><i class="dot"></i>${c.label} <b>${c.n}</b>/≤${c.max}</span>`;
   };
-  return `<div class="health">${['fish','liver','noodles','soups','season','baby'].map(chip).join('')}</div>`;
+  const checks = ['fish','liver','noodles','soups'];
+  const bad = checks.filter(k => isBad(s[k]));
+  if (healthOpen) {
+    return `<div class="health">${[...checks,'season','baby'].map(chip).join('')}
+      <button class="chip link" onclick="toggleHealth()">收起</button></div>`;
+  }
+  const okLine = bad.length
+    ? `<span class="chip ok-line">其余 ${checks.length - bad.length} 项达标</span>`
+    : `<span class="chip ok-line"><i class="dot"></i>${checks.map(k => s[k].label).join('·')} 均达标</span>`;
+  return `<div class="health">${bad.map(chip).join('')}${okLine}${chip('baby')}
+    <button class="chip link" onclick="toggleHealth()">全部</button></div>`;
 }
 
 // ---------- 购物清单 ----------
@@ -812,15 +846,15 @@ function mealLoad(m) {
 }
 
 function renderGrid(w) {
-  // 只标例外:宝宝不吃的挂灰章,能吃的什么都不挂(占全库 88%,标了等于没标)
-  const dot = (r) => `<span>${r.baby_variant.suitable ? '' : '<i class="bdot no">宝</i>'}${esc(r.name)}</span>`;
+  // 只标例外:宝宝不吃的挂灰章,能吃的什么都不挂(占全库 88%,标了等于没标)。
+  // 章里写 ✕ 而不是「宝」——一个「宝」字只会被读成肯定含义,正好反了
+  const dot = (r) => `<span>${r.baby_variant.suitable ? '' : '<i class="bdot no">✕</i>'}${esc(r.name)}</span>`;
   const cell = (m, key) => {
     const rows = [];
     // 早餐全是模板项(饮品/主食/蛋),没有菜谱
     if (key === 'breakfast') {
       rows.push(`<span>${esc(m.staple)}</span>`);
-      rows.push(`<span class="sub">${esc(m.drink)}</span>`);
-      rows.push(`<span class="sub">蛋 × 每人1个</span>`);
+      rows.push(`<span class="sub">${esc(m.drink)} · 蛋</span>`);
     }
     [m.meat, m.veg, m.soup].filter(Boolean).map(R).filter(Boolean).forEach(r => rows.push(dot(r)));
     if (key !== 'breakfast') {
@@ -838,7 +872,7 @@ function renderGrid(w) {
         ${cell(d.breakfast, 'breakfast')}${cell(d.lunch, 'lunch')}${cell(d.dinner, 'dinner')}
       </div>`).join('')}
   </div>
-  <div class="footnote">挂 <i class="bdot">宝</i> 的菜宝宝能吃 · 今天这行有底色 · 切到「详细」看分菜时机和换一换</div>`;
+  <div class="footnote">挂 <i class="bdot no">✕</i> 的菜宝宝不吃,当餐要另备 · 今天这行有底色 · 切到「详细」看分菜时机和换一换</div>`;
 }
 
 function renderDays(w, readonly) {
@@ -854,11 +888,18 @@ function renderDays(w, readonly) {
           const stapleKey = m.staple.replace(/\(.+\)/, '');
           const drinkKey = /豆浆/.test(m.drink) ? '豆浆' : m.drink;
           const drinkTip = (babyRules.breakfast_drink_rule || {})[drinkKey];
-          inner = `<div class="dish"><span class="dish-name">${esc(m.drink)}</span><span class="tag">饮品</span></div>
-            ${drinkTip ? `<div class="baby-row">${esc(drinkTip)}</div>` : ''}
-            <div class="dish"><span class="dish-name">${esc(m.staple)}</span><span class="tag">主食</span></div>
-            <div class="baby-row">${esc(babyRules.breakfast_adaptation[stapleKey] || babyRules.breakfast_adaptation['杂粮'])}</div>
-            <div class="dish"><span class="dish-name">${esc(m.egg)}</span><span class="tag">蛋</span></div>`;
+          // 早餐的宝宝提示逐日重复(豆浆那段一周原样出现 3-4 次),跟菜谱一样默认收起
+          const bfRow = (label, text, tipKey) => {
+            const k = `${i}-bf-${tipKey}`;
+            const btn = text ? `<button class="baby-mini ${openBaby[k] ? 'on' : ''}"
+              onclick="toggleBaby('${k}')">宝${openBaby[k] ? ' ▲' : ' ▼'}</button>` : '';
+            return `<div class="dish"><span class="dish-name">${esc(label)}</span>${btn}
+              <span class="tag">${tipKey === 'drink' ? '饮品' : tipKey === 'staple' ? '主食' : '蛋'}</span></div>
+              ${text && openBaby[k] ? `<div class="baby-row">${esc(text)}</div>` : ''}`;
+          };
+          inner = bfRow(m.drink, drinkTip, 'drink')
+            + bfRow(m.staple, babyRules.breakfast_adaptation[stapleKey] || babyRules.breakfast_adaptation['杂粮'], 'staple')
+            + bfRow('蛋', null, 'egg');
         } else {
           inner = [m.meat && dishRow(m.meat, i, key, 'meat', readonly),
                    m.veg && dishRow(m.veg, i, key, 'veg', readonly),
@@ -883,8 +924,11 @@ function renderToday() {
     const names = rs.map(r => `<b>${esc(r.name)}</b>`).concat(st ? [`<b>${esc(st.name)}</b>`] : [esc(m.staple)]);
     const { mins, prepAhead } = mealLoad(m);
     const bad = [...rs, st].filter(Boolean).filter(r => !r.baby_variant.suitable);
+    // 超单餐预算要跟详细页一样标暖色——最显眼的位置反而不告警是说不过去的
+    const over = mins > config.constraints.meal_time_budget_min;
     return `<div class="today-meal">
-      <div class="today-label">${label}<span class="today-mins">${mins} 分${prepAhead ? '·有可提前的' : ''}</span></div>
+      <div class="today-label">${label}<span class="today-mins ${over ? 'over' : ''}">${mins} 分${
+        over ? (prepAhead ? '·超预算,有可提前做的' : '·超单餐预算') : (prepAhead ? '·有可提前的' : '')}</span></div>
       <div class="today-dishes">${names.join('<span class="sep">·</span>')}</div>
       ${bad.length ? `<div class="today-warn">${bad.map(r => esc(r.name)).join('、')}宝宝不吃,当餐另备</div>` : ''}
     </div>`;
@@ -918,27 +962,39 @@ function setOverview(v) { overview = v; store.set('overview', v); render(); }
 // 早餐是模板项不是菜谱,单列一块常备清单(按包装买,不算克重)
 function breakfastNeeds() {
   const drinks = {}, staples = {}, dinnerStaples = {};
+  const variants = {};   // 杂粮 -> [紫薯, 玉米...],买的是同一类东西,不该拆成四行
   week.days.forEach(d => {
     const dr = d.breakfast.drink, st = d.breakfast.staple;   // st 可能是「杂粮(玉米)」
+    const m = st.match(/^(.+?)\((.+)\)$/);
+    const base = m ? m[1] : st;
+    if (m) (variants[base] = variants[base] || []).push(m[2]);
     drinks[dr] = (drinks[dr] || 0) + 1;
-    staples[st] = (staples[st] || 0) + 1;
+    staples[base] = (staples[base] || 0) + 1;
     // 晚餐的馒头/花卷和早餐主食一样是按包装买的模板项,不是菜谱,得单列出来才不会漏买
     if (!R(d.dinner.staple)) dinnerStaples[d.dinner.staple] = (dinnerStaples[d.dinner.staple] || 0) + 1;
   });
-  return { drinks, staples, dinnerStaples, eggs: 7 * (config.family.adults + 1) };
+  return { drinks, staples, dinnerStaples, variants, eggs: 7 * (config.family.adults + 1) };
 }
 
 function renderBreakfastBlock() {
   const n = breakfastNeeds();
-  const rows = (obj) => Object.entries(obj)
-    .map(([k, v]) => `<div class="bf-item"><span>${esc(k)}</span><span class="times">${v} 天</span></div>`).join('');
+  // 常备也能勾选:店里划不掉的清单等于半张清单
+  const rows = (obj, unit = ' 天') => Object.entries(obj).map(([k, v]) => {
+    const on = !!bought['bf|' + k];
+    const sub = n.variants[k] ? `<div class="bf-sub">${n.variants[k].map(esc).join(' · ')}</div>` : '';
+    return `<div class="bf-item shop-item ${on ? 'done' : ''}" onclick="toggleBought('bf','${esc(k)}')">
+      <span class="box">${on ? '✓' : ''}</span>
+      <span class="grow"><span class="s-name">${esc(k)}</span>${sub}</span>
+      <span class="times">${typeof v === 'number' ? v + unit : esc(v)}</span></div>`;
+  }).join('');
   return `<section class="batch">
-    <div class="batch-head"><span>常备</span><span class="prog">按包装买</span></div>
+    <div class="batch-head"><span>常备</span><span class="prog">按包装买
+      <button class="copy-mini" onclick="copyShop('bf')">${copied === 'bf' ? '已复制 ✓' : '复制'}</button></span></div>
     <div class="cat-block"><div class="cat-title">早餐饮品</div>${rows(n.drinks)}</div>
     <div class="cat-block"><div class="cat-title">早餐主食</div>${rows(n.staples)}</div>
     ${Object.keys(n.dinnerStaples).length ? `<div class="cat-block"><div class="cat-title">晚餐主食</div>${rows(n.dinnerStaples)}</div>` : ''}
     <div class="cat-block"><div class="cat-title">蛋</div>
-      <div class="bf-item"><span>鸡蛋</span><span class="times">约 ${n.eggs} 个 / 周</span></div></div>
+      ${rows({ '鸡蛋': `约 ${n.eggs} 个 / 周` })}</div>
   </section>`;
 }
 
@@ -947,15 +1003,20 @@ function setShopFilter(k) {
   store.set('shopFilter', shopFilter); render();
 }
 
-// 两位掌勺各看一份:清单转成纯文本,复制走微信发给对方
-function shopText() {
+// 两位掌勺各看一份:清单转成纯文本,复制走微信发给对方。
+// 按批复制——在店里本来就只需要当批那几样
+function shopText(only) {
   const n = breakfastNeeds();
-  const lines = ['【常备·按包装买】'];
-  Object.entries(n.drinks).forEach(([k, v]) => lines.push(`  ${k} ${v} 天`));
-  Object.entries(n.staples).forEach(([k, v]) => lines.push(`  ${k} ${v} 天`));
-  Object.entries(n.dinnerStaples).forEach(([k, v]) => lines.push(`  ${k} ${v} 天`));
-  lines.push(`  鸡蛋 约 ${n.eggs} 个`);
-  shoppingBatches().forEach(b => {
+  const lines = [];
+  if (!only || only === 'bf') {
+    lines.push('【常备·按包装买】');
+    Object.entries(n.drinks).forEach(([k, v]) => lines.push(`  ${k} ${v} 天`));
+    Object.entries(n.staples).forEach(([k, v]) =>
+      lines.push(`  ${k} ${v} 天${n.variants[k] ? '(' + n.variants[k].join('/') + ')' : ''}`));
+    Object.entries(n.dinnerStaples).forEach(([k, v]) => lines.push(`  ${k} ${v} 天`));
+    lines.push(`  鸡蛋 约 ${n.eggs} 个`);
+  }
+  shoppingBatches().filter(b => !only || only === b.key).forEach(b => {
     lines.push('', `【${b.name}】`);
     Object.entries(b.byCat).forEach(([cat, items]) => {
       lines.push(` ${cat}`);
@@ -967,11 +1028,11 @@ function shopText() {
       });
     });
   });
-  return lines.join('\n');
+  return lines.join('\n').trim();
 }
-function copyShop() {
-  const txt = shopText();
-  const done = () => { copied = true; render(); setTimeout(() => { copied = false; render(); }, 2000); };
+function copyShop(only) {
+  const txt = shopText(only);
+  const done = () => { copied = only || 'all'; render(); setTimeout(() => { copied = null; render(); }, 2000); };
   if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done, () => fallbackCopy(txt, done));
   else fallbackCopy(txt, done);
 }
@@ -983,21 +1044,33 @@ function fallbackCopy(txt, done) {
   document.body.removeChild(ta);
 }
 
+// 默认聚焦「今天或下一次要买的那批」——打开买菜页十有八九是马上要出门,
+// 一进来就是全周三批 + 常备,要买的生鲜反而在第二屏之后
+function defaultShopFilter() {
+  const buy = BUY_DAYS;
+  if (!buy.length) return null;
+  const next = buy.find(i => i >= todayIdx);
+  return 'b' + buy.indexOf(next === undefined ? buy[0] : next);
+}
+
 function renderShop() {
   if (!week) return `<div class="empty">先生成本周菜单,买菜清单会自动出来。</div>`;
   const batches = shoppingBatches();
-  // 到店只想看一批的时候,把另一批和早餐常备收起来
-  const opts = [['bf', '早餐常备'], ...batches.map((b, i) => ['b' + i, Object.keys(config.shopping.batch_coverage)[i] + '采购'])];
+  const cur = shopFilter === 'all' ? null : (shopFilter || defaultShopFilter());
+  const opts = [...batches.map((b, i) => ['b' + i, Object.keys(config.shopping.batch_coverage)[i] + '采购']),
+                ['bf', '常备'], ['all', '全部']];
   const filters = `<div class="filters">${opts.map(([k, label]) =>
-    `<button class="${shopFilter === k ? 'on' : ''}" onclick="setShopFilter('${k}')">${esc(label)}</button>`).join('')}
-    <button class="copy-btn" onclick="copyShop()">${copied ? '已复制 ✓' : '复制清单'}</button></div>`;
-  const show = (k) => !shopFilter || shopFilter === k;
+    `<button class="${(k === 'all' ? !cur : cur === k) ? 'on' : ''}" onclick="setShopFilter('${k}')">${esc(label)}</button>`
+  ).join('')}</div>`;
+  const show = (k) => !cur || cur === k;
   return filters + (show('bf') ? renderBreakfastBlock() : '') + batches.filter(b => show(b.key)).map(b => {
     const all = Object.values(b.byCat).flat();
     const done = all.filter(it => bought[b.key + '|' + it.name]).length;
     return `
     <section class="batch">
-      <div class="batch-head"><span>${esc(b.name)}</span><span class="prog">${done}/${all.length}</span></div>
+      <div class="batch-head"><span>${esc(b.name)}</span>
+        <span class="prog">${done}/${all.length}
+          <button class="copy-mini" onclick="copyShop('${b.key}')">${copied === b.key ? '已复制 ✓' : '复制'}</button></span></div>
       <div class="bar"><i style="width:${all.length ? done / all.length * 100 : 0}%"></i></div>
       ${Object.entries(b.byCat).map(([cat, items]) => `
         <div class="cat-block"><div class="cat-title">${esc(cat)}</div>
@@ -1006,12 +1079,14 @@ function renderShop() {
             const sameDay = !!(it.ing && it.ing.same_day);
             const urgent = s && s.batch_priority === 1;
             const on = !!bought[b.key + '|' + it.name];
+            // 储存方式用常规色,只有「先吃」这两个字标暖色——一批生鲜多半都是 priority 1,
+            // 整条都染橙等于没有强调
             const tip = s ? (sameDay ? esc(s.method)
-                                     : `${esc(s.method)},${s.max_days} 天内吃完${urgent ? ' · 先吃' : ''}`) : '';
+                                     : `${esc(s.method)},${s.max_days} 天内吃完${urgent ? ' · <b>先吃</b>' : ''}`) : '';
             return `<div class="shop-item ${on ? 'done' : ''}" onclick="toggleBought('${b.key}','${esc(it.name)}')">
               <span class="box">${on ? '✓' : ''}</span>
               <span class="grow"><span class="s-name">${esc(it.name)}</span>${sameDay ? '<span class="badge-today">当天吃</span>' : ''}
-                ${tip ? `<div class="storage-tip ${urgent && !sameDay ? '' : 'plain'}">${tip}</div>` : ''}
+                ${tip ? `<div class="storage-tip">${tip}</div>` : ''}
               </span>
               <span class="shop-qty">${it.g >= 1000 ? (it.g/1000).toFixed(1) + ' kg' : it.g + ' g'}${
                 it.ing && it.ing.pack_hint ? `<i class="pack">${esc(it.ing.pack_hint)}</i>` : ''}</span></div>`;
@@ -1161,17 +1236,32 @@ function renderSeason() {
         ${list.map(i => {
           const ms = monthsOf(i.season_months);
           const s = i.storage;
-          // 买回来怎么放、几天内吃完,和在不在季一样是买菜当场要看的
+          // 储存行只对「到手先吃」和「当天吃」常显——其余是常识(冷藏几天),
+          // 56 项每项两行就是 10 屏。想看细节点食材名展开
+          const urgent = s.batch_priority === 1 || i.same_day;
+          // 同买菜页:方法用常规色,只有「先吃」标暖色。叶菜几乎全是 priority 1,整条染橙就没有强调可言
           const keep = `${esc(s.method)} · ${i.same_day ? '当天吃完' : s.max_days + ' 天内吃完'}${
-            s.batch_priority === 1 ? ' · 先吃' : s.batch_priority === 3 ? ' · 耐储' : ''}`;
-          return `<div class="ing-row">
+            s.batch_priority === 1 ? ' · <b>先吃</b>' : s.batch_priority === 3 ? ' · 耐储' : ''}`;
+          const open = openRec === 'ing:' + i.name;
+          // 文字月份区间:12 格热力条在 390px 下每格只有 9px,读不出是哪几个月
+          const span = i.season_months === 'all' ? '全年'
+            : ms.reduce((acc, m) => {                     // 连续月份并成区间
+                const last = acc[acc.length - 1];
+                if (last && m === last[1] + 1) last[1] = m; else acc.push([m, m]);
+                return acc;
+              }, []).map(([a, b2]) => a === b2 ? `${a}月` : `${a}-${b2}月`).join('·');
+          return `<div class="ing-row ${open ? 'open' : ''}" onclick="toggleRec('ing:${esc(i.name)}')">
             <div>
               <div class="ing-name">${esc(i.name)}${i.same_day ? '<span class="badge-today">当天吃</span>' : ''}${
                 i.baby_ok ? '' : '<span class="nb">宝宝不吃</span>'}</div>
-              <div class="ing-keep ${s.batch_priority === 1 ? 'urgent' : ''}">${keep}</div>
+              ${urgent || open ? `<div class="ing-keep ${urgent ? 'urgent' : ''}">${keep}</div>` : ''}
+              ${open && i.baby_note ? `<div class="ing-keep">宝宝:${esc(i.baby_note)}</div>` : ''}
             </div>
-            <div class="bars">${MONTHS.map(m =>
-              `<i class="${ms.includes(m) ? 'on' : ''} ${m === mm ? 'sel' : ''}"></i>`).join('')}</div>
+            <div class="ing-when">
+              <div class="ing-span">${span}</div>
+              <div class="bars">${MONTHS.map(m =>
+                `<i class="${ms.includes(m) ? 'on' : ''} ${m === mm ? 'sel' : ''}"></i>`).join('')}</div>
+            </div>
           </div>`;
         }).join('')}
       </div>`).join('') +
@@ -1306,6 +1396,9 @@ function renderDraw() {
     cards = `<div class="cards">${draw.cards.map(id => {
       const r = R(id); if (!r) return '';
       const bv = r.baby_variant, flipped = draw.flipped && draw.flipped[id];
+      // 承诺了「一荤一素一主食」,卡上就得看得出哪个是哪个
+      const kind = ['荤','半荤'].includes(r.category) ? '荤'
+                 : r.category === '主食' ? '主食' : '素';
       const face = flipped
         ? `<div class="card-back">
              <div class="card-back-t">宝宝那份</div>
@@ -1313,6 +1406,7 @@ function renderDraw() {
                            : `<p class="na">这道宝宝不吃:${esc(bv.unsuitable_reason)}</p>`}
            </div>`
         : `<div class="card-front">
+             <div class="card-kind">${kind}</div>
              <div class="card-name">${esc(r.name)}</div>
              <div class="card-meta">${r.cook_time_min} 分${r.prep_ahead ? ' · 可提前' : ''}${
                r.spicy ? ` · ${'辣'.repeat(r.spicy)}` : ''}</div>
@@ -1321,11 +1415,12 @@ function renderDraw() {
              <div class="card-ings">${r.main_ingredients.map(m =>
                `${esc(m.name)} ${m.qty_g >= 1000 ? (m.qty_g/1000).toFixed(1) + 'kg' : m.qty_g + 'g'}`).join('<br>')}</div>
            </div>`;
-      return `<div class="card ${flipped ? 'flipped' : ''}">
+      // 点卡片任意处翻面看详情,底部按钮做决定——两个动作语义分开,不打架
+      return `<div class="card ${flipped ? 'flipped' : ''}" onclick="flipCard('${id}')">
         ${face}
-        <div class="card-actions">
-          <button class="flip" onclick="flipCard('${id}')">${flipped ? '翻回来' : '看宝宝份'}</button>
-          <button class="take" onclick="takeCard('${id}')">就它</button>
+        <div class="card-foot">
+          <div class="card-hint">${flipped ? '点卡片翻回来' : '点卡片看宝宝份'}</div>
+          <button class="take" onclick="event.stopPropagation();takeCard('${id}')">就它</button>
         </div>
       </div>`;
     }).join('')}</div>`;
@@ -1334,14 +1429,12 @@ function renderDraw() {
   }
 
   return `<div class="draw-page">
-    <div class="draw-intro">周菜单已经排好了,这里是给「今天临时想换」用的。给的三个都是今天真能做的:
-      不隔夜的鱼虾只在采购当天出现,本周排过的不重复,一荤一素一主食各来一个。</div>
+    <div class="draw-intro">今天不想吃排好的那道?给你三个今天真能做的,一荤一素一主食。</div>
     <div class="slots">${slots}</div>
     <button class="gen-btn draw-btn" onclick="drawCards()">
       ${draw && draw.cards && draw.cards.length ? '换一批候选' : '给我三个候选'}</button>
     ${cards}
-    <div class="footnote">一次只给三个,是为了不让你再从 ${recipes.items.length} 道里挑;不满意就换一批。<br>
-      选中的菜会替换今天晚餐的对应位置,买菜清单跟着变;选错了到菜单页点「撤销」。</div>
+    <div class="footnote">选中的菜替换今天晚餐对应位置,买菜清单跟着变;选错了到菜单页点「撤销」。</div>
   </div>`;
 }
 
@@ -1373,9 +1466,10 @@ function renderBaby() {
                 : '<p>鱼、猪肝都在区间内,本周每一餐宝宝都有得吃。</p>'}</div>` : '';
   return `<div class="baby-page">
     ${wk}
-    <div class="rule-block"><h3>一天的节奏(${esc(b.age_stage)} · 奶 ${b.milk.total_ml}ml)</h3></div>
-    <div class="sched">${b.daily_schedule.default.map(s =>
-      `<div class="sched-row"><span class="sched-time">${esc(s.time)}</span><span>${esc(s.item)}</span></div>`).join('')}
+    <div class="sched">
+      <h3 class="sched-title">一天的节奏(${esc(b.age_stage)} · 奶 ${b.milk.total_ml}ml)</h3>
+      ${b.daily_schedule.default.map(s =>
+        `<div class="sched-row"><span class="sched-time">${esc(s.time)}</span><span>${esc(s.item)}</span></div>`).join('')}
     </div>
     <div class="rule-block"><h3>娃醒得晚怎么办</h3><p>${esc(b.daily_schedule.alt_late_wake)}</p></div>
     <div class="rule-block"><h3>分菜的时机</h3><p>${esc(b.split_point_rule)}</p></div>
@@ -1386,11 +1480,14 @@ function renderBaby() {
 
 function render() {
   const app = document.getElementById('app');
+  // 页头给「今天是周几」,不是「哪天生成的」——后者只在菜单过期时才重要,那时有专门的提示条
+  const now = new Date();
   document.getElementById('week-label').textContent =
-    week ? `${week.month}月 · ${new Date(week.generatedAt).getMonth()+1}/${new Date(week.generatedAt).getDate()} 生成` : `${month}月 · 菜谱 ${recipes.items.length} 道`;
+    week ? `${DAYS[todayIdx]} · ${now.getMonth() + 1}/${now.getDate()}` : `${month}月 · 菜谱 ${recipes.items.length} 道`;
   let html = '';
+  // 已有菜单时「重新排一周」降为次要按钮:它最低频又是破坏性的,不该是全页最重的元素
   if (view === 'menu') html = `<div class="menu-top">
-      <button class="gen-btn" onclick="regen()">${week ? '重新排一周' : '生成本周菜单'}</button>
+      <button class="gen-btn ${week ? 'secondary' : ''}" onclick="regen()">${week ? '重新排一周' : '生成本周菜单'}</button>
     </div>` + renderMenu();
   if (view === 'draw') html = renderDraw();
   if (view === 'shop') html = renderShop();
