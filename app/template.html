@@ -332,7 +332,7 @@
   .miss-hint button { border: none; background: var(--warn); color: #fff; font-family: inherit;
     font-size: 12px; padding: 3px 10px; border-radius: 8px; margin-left: 6px; cursor: pointer; }
 
-  /* ---------- 抽卡 ---------- */
+  /* ---------- 今晚吃什么 ---------- */
   .draw-page { margin: 0 14px; }
   .draw-intro { font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; margin-bottom: 12px; }
   .slots { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
@@ -380,7 +380,7 @@
 </div>
 <nav><div class="inner">
   <button data-view="menu" class="on">菜单</button>
-  <button data-view="draw">抽卡</button>
+  <button data-view="draw">今晚</button>
   <button data-view="shop">买菜</button>
   <button data-view="season">时令</button>
   <button data-view="baby">宝宝</button>
@@ -407,8 +407,8 @@ let openBaby = store.get('openBaby', {});      // 详细页展开了宝宝行的
 let lastSwap = null;                           // 最近一次「换一换」,用于撤销
 let seasonQ = '';                              // 时令页搜索词
 let copied = false;                            // 「复制清单」的短暂反馈
-let draw = store.get('draw', null);            // 抽卡:当前三张牌
-let drawSlots = store.get('drawSlots', {});    // 抽卡:条件槽
+let draw = store.get('draw', null);            // 今晚吃什么:当前三个候选
+let drawSlots = store.get('drawSlots', {});    // 今晚吃什么:条件槽
 let view = 'menu';
 let overview = store.get('overview', true);
 let seasonMonth = store.get('seasonMonth', new Date().getMonth() + 1);
@@ -1163,21 +1163,10 @@ function renderSeason() {
   </div>`;
 }
 
-// ---------- 抽卡 ----------
+// ---------- 今晚吃什么 ----------
 // 定位:不替代周菜单,是「今天不想吃排好的那道」时的逃生口。
-// 把「从 77 道里挑」压缩成「从 3 张里挑」——所以一次只发 3 张,重抽有次数。
-const DRAW_MAX = 3;                       // 每天重抽上限
-const drawKey = () => new Date().toISOString().slice(0, 10);
-function drawsLeft() {
-  const d = store.get('drawDay', null);
-  if (!d || d.date !== drawKey()) return DRAW_MAX;
-  return Math.max(0, DRAW_MAX - d.used);
-}
-function useDraw() {
-  const d = store.get('drawDay', null);
-  const used = (d && d.date === drawKey()) ? d.used + 1 : 1;
-  store.set('drawDay', { date: drawKey(), used });
-}
+// 一次只给 3 个候选——把「从 77 道里挑」压缩成「从 3 个里挑」,决策成本是固定的。
+// 不设次数上限:限次是游戏化包装,对做饭这件事只是添堵。
 
 const DRAW_SLOTS = {
   spicy: { label: '辣度', opts: [['mild', '不辣', r => !r.spicy], ['hot', '要辣', r => r.spicy >= 1]] },
@@ -1191,10 +1180,9 @@ function setDrawSlot(k, v) {
   store.set('drawSlots', drawSlots); render();
 }
 
-// 抽卡候选走的是排菜那套:硬约束先过滤(不隔夜鲜货只在采购当天、鱼/猪肝周上限、冷却期),
-// 再按评分取前段加权随机——所以抽到的牌一定是「今天真能做」的,不是纯随机。
+// 候选走的是排菜那套:硬约束先过滤(不隔夜鲜货只在采购当天、鱼/猪肝周上限、冷却期),
+// 再按评分取前段加权随机——所以给出来的一定是「今天真能做」的,不是纯随机。
 function drawCards() {
-  if (!drawsLeft()) return;
   const todayBuy = BUY_DAYS.includes(todayIdx);
   const inWeek = {};
   if (week) week.days.forEach((d, i) => dishesOfDay(d).forEach(id => { inWeek[id] = i; }));
@@ -1236,7 +1224,7 @@ function drawCards() {
   const picked = [], usedKinds = new Set();
   while (picked.length < 3 && top.length) {
     // 先锁定还没出现过的类别,再在该类别的候选里随机取——只取分最高的那个,
-    // 会导致每次抽出来都是同几道,抽卡就没意思了
+    // 会导致每次给的都是同几道,换一批就没有意义了
     let idxs = top.map((x, i) => [x, i]).filter(([x]) => !usedKinds.has(kindOf(x.r))).map(([, i]) => i);
     if (!idxs.length) idxs = top.map((_, i) => i);
     const idx = idxs[Math.floor(Math.random() * idxs.length)];
@@ -1244,7 +1232,6 @@ function drawCards() {
     usedKinds.add(kindOf(chosen.r));
     picked.push(chosen.r.id);
   }
-  useDraw();
   draw = { cards: picked, flipped: {}, at: Date.now() };
   store.set('draw', draw); render();
 }
@@ -1268,7 +1255,6 @@ function takeCard(id) {
 }
 
 function renderDraw() {
-  const left = drawsLeft();
   const slots = Object.entries(DRAW_SLOTS).map(([k, v]) => `
     <div class="slot"><span class="slot-label">${v.label}</span>
       ${v.opts.map(([id, label]) =>
@@ -1277,7 +1263,7 @@ function renderDraw() {
 
   let cards = '';
   if (draw && draw.empty) {
-    cards = `<div class="empty">这几个条件下今天没有能做的菜。<br>松一个条件再抽。</div>`;
+    cards = `<div class="empty">这几个条件下今天没有能做的菜。<br>松一个条件再来。</div>`;
   } else if (draw && draw.cards.length) {
     cards = `<div class="cards">${draw.cards.map(id => {
       const r = R(id); if (!r) return '';
@@ -1306,18 +1292,18 @@ function renderDraw() {
       </div>`;
     }).join('')}</div>`;
   } else {
-    cards = `<div class="empty">今晚不想吃排好的那道?<br>抽三张,挑一张。</div>`;
+    cards = `<div class="empty">今晚不想吃排好的那道?<br>给你三个候选,挑一个。</div>`;
   }
 
   return `<div class="draw-page">
-    <div class="draw-intro">周菜单已经排好了,这里是给「今天临时想换」用的。抽出来的都是今天真能做的:
-      不隔夜的鱼虾只在采购当天出现,本周排过的不重复。</div>
+    <div class="draw-intro">周菜单已经排好了,这里是给「今天临时想换」用的。给的三个都是今天真能做的:
+      不隔夜的鱼虾只在采购当天出现,本周排过的不重复,一荤一素一主食各来一个。</div>
     <div class="slots">${slots}</div>
-    <button class="gen-btn draw-btn" ${left ? '' : 'disabled'} onclick="drawCards()">
-      ${left ? `抽三张 · 今天还剩 ${left} 次` : '今天抽完了,明天再来'}</button>
+    <button class="gen-btn draw-btn" onclick="drawCards()">
+      ${draw && draw.cards && draw.cards.length ? '换一批候选' : '给我三个候选'}</button>
     ${cards}
-    <div class="footnote">选中的菜会替换今天晚餐的对应位置,买菜清单跟着变;换错了到菜单页点「撤销」。<br>
-      每天限 ${DRAW_MAX} 次是故意的——无限重抽就等于把 77 道菜又翻了一遍,抽卡就没意义了。</div>
+    <div class="footnote">一次只给三个,是为了不让你再从 ${recipes.items.length} 道里挑;不满意就换一批。<br>
+      选中的菜会替换今天晚餐的对应位置,买菜清单跟着变;选错了到菜单页点「撤销」。</div>
   </div>`;
 }
 
