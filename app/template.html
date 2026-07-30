@@ -78,7 +78,12 @@
     cursor: pointer; font-family: inherit;
   }
   .gen-btn:active { opacity: .85; }
-  .gen-btn.secondary { background: var(--card); color: var(--ink-soft); border: 1px solid var(--line); font-weight: 400; }
+  .page-end { text-align: center; padding: 6px 14px 18px; }
+  .regen-mini {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink-soft);
+    font-family: inherit; font-size: 13px; padding: 10px 18px; border-radius: 10px; cursor: pointer;
+  }
+  .regen-mini:active { background: var(--line-soft); }
   .chip.ok-line { color: var(--ink-soft); }
   .chip.link { border-style: dashed; color: var(--green); cursor: pointer; font-family: inherit; }
 
@@ -153,24 +158,27 @@
   .dish-name { font-size: 16px; }
   .dish-meta { font-size: 12px; color: var(--ink-soft); margin-left: 6px; font-variant-numeric: tabular-nums; }
   .spicy { color: var(--spice); font-size: 12px; margin-left: 4px; }
-  /* 热区撑到 44px(触控下限),再用负 margin 抵消视觉膨胀——直接加高会让详细页多出 500 多像素 */
+  /* 热区撑到 44px 用伪元素向外扩,按钮本身保持小:
+     直接加 padding 会把可见边框也撑大,28 个大白框反而抢了菜名的视线 */
   .swap {
     border: 1px solid var(--line); background: none; border-radius: 8px; font-family: inherit;
     font-size: 12px; color: var(--green); cursor: pointer; flex-shrink: 0;
-    padding: 15px 9px; margin: -12px 0; line-height: 1;
+    padding: 4px 10px; position: relative;
   }
+  .swap::after { content: ''; position: absolute; inset: -10px -8px; }
   .swap:active { background: var(--green-soft); }
-  /* 签名元素:宝宝行 */
+  /* 签名元素:宝宝行。常显,所以用细边线而不是整块底色——
+     28 道菜每道一块橙底就是一堵墙,强调色也就失效了 */
   .baby-row {
-    margin: 6px 0 2px; padding: 8px 10px;
-    background: var(--baby-soft); border-radius: 10px;
-    font-size: 13px; color: var(--baby-ink); display: flex; gap: 8px; line-height: 1.5;
+    margin: 3px 0 6px; padding: 1px 0 1px 10px;
+    border-left: 2px solid var(--baby);
+    font-size: 12.5px; color: var(--ink-soft); line-height: 1.55;
   }
-  .baby-row::before { content: "宝"; flex-shrink: 0; width: 20px; height: 20px;
-    background: var(--baby); color: #fff; border-radius: 50%;
-    font-size: 11px; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
-  .baby-row.na { background: var(--line-soft); color: var(--ink-soft); }
-  .baby-row.na::before { background: #a9aca6; content: "无"; }
+  /* 宝宝不吃才是真正的例外,给实底 */
+  .baby-row.na {
+    background: var(--baby-soft); color: var(--baby-ink); border-left: none;
+    padding: 7px 10px; border-radius: 10px; font-weight: 600;
+  }
 
   .tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 20px;
     background: var(--green-soft); color: var(--green); margin-left: 6px; vertical-align: 1px; }
@@ -322,13 +330,6 @@
     background: var(--warn-soft); color: var(--warn); font-size: 13px; }
 
   /* 宝宝标记:只标例外。能吃的给一个小钮,想看分菜时机才展开 */
-  .baby-mini {
-    border: 1px solid var(--baby); background: none; color: var(--baby);
-    font-family: inherit; font-size: 10.5px; border-radius: 999px;
-    cursor: pointer; vertical-align: 1px; line-height: 17px;
-    padding: 13px 6px; margin: -13px 0 -13px 6px;   /* 同上:热区 44px,视觉不变 */
-  }
-  .baby-mini.on { background: var(--baby); color: #fff; }
   .bdot.no { background: #a9aca6; }
   .swap-wrap { display: flex; gap: 6px; flex-shrink: 0; }
   .swap.undo { color: var(--warn); border-color: var(--warn); }
@@ -432,7 +433,6 @@ let prevBought = store.get('prevBought', null);
 let shopFilter = store.get('shopFilter', null);
 let seasonCat = store.get('seasonCat', null);
 let openRec = null;                            // 时令页展开的菜谱 id
-let openBaby = store.get('openBaby', {});      // 详细页展开了宝宝行的菜位
 let lastSwap = null;                           // 最近一次「换一换」,用于撤销
 let seasonQ = '';                              // 时令页搜索词
 let copied = null;                             // 「复制」的短暂反馈,值是批次 key
@@ -812,13 +812,11 @@ function dishRow(rid, dayIdx, mealKey, slot, readonly) {
   const noodleTag = r.category === '主食' ? `<span class="tag noodle">面食</span>` : '';
   // 限定月份的菜标「当季」:全年都能做的菜不标,免得满屏都是
   const seasonTag = r.season_months !== 'all' ? `<span class="tag season">当季</span>` : '';
-  // 全库 88% 的菜宝宝都能吃,逐道标「宝宝可吃」等于没标。只标例外:
-  // 不吃的常显红牌,能吃的给一个可点开的小钮,想看分菜时机再展开
+  // 全库 88% 的菜宝宝都能吃,所以只给不吃的挂牌。
+  // 分菜时机常显——那是这个页面的核心信息,藏在开关后面等于每道菜多一次点击;
+  // 满屏橙块的问题靠「换呈现」解决(细边线+常规小字),不是靠折叠。
   const bv = r.baby_variant;
-  const key = `${dayIdx}-${mealKey}-${slot}`;
-  const babyTag = bv.suitable
-    ? `<button class="baby-mini ${openBaby[key] ? 'on' : ''}" onclick="toggleBaby('${key}')">宝${openBaby[key] ? ' ▲' : ' ▼'}</button>`
-    : `<span class="tag baby-no">宝宝不吃</span>`;
+  const babyTag = bv.suitable ? '' : `<span class="tag baby-no">宝宝不吃</span>`;
   const cand = readonly ? 0 : swapCount(r, mealKey, slot);
   // 刚换过的这一位就地给一个撤销,不用跑到页面顶上去找
   const justSwapped = lastSwap && lastSwap.dayIdx === dayIdx
@@ -830,16 +828,14 @@ function dishRow(rid, dayIdx, mealKey, slot, readonly) {
       justSwapped ? `<button class="swap undo" onclick="undoSwap()">撤销</button>` : ''}
       <button class="swap" ${cand ? '' : 'disabled'}
        onclick="swapDish(${dayIdx},'${mealKey}','${slot}')">换一换</button></span>`}
-  </div>${babyLine(r, key)}`;
+  </div>${babyLine(r)}`;
 }
-function babyLine(r, key) {
+function babyLine(r) {
   const bv = r.baby_variant;
-  // 宝宝不吃的必须常显——那是当餐要另想办法的;能吃的默认收起,点「宝」才展开
+  // 宝宝不吃的用实底(真正的例外,当餐要另想办法);能吃的用细边线,常显但不抢眼
   if (!bv.suitable) return `<div class="baby-row na">此菜宝宝不吃:${esc(bv.unsuitable_reason)}</div>`;
-  if (!openBaby[key]) return '';
   return `<div class="baby-row">${esc(bv.split_point)};${esc(bv.modification)}</div>`;
 }
-function toggleBaby(key) { openBaby[key] = !openBaby[key]; store.set('openBaby', openBaby); render(); }
 function mealLoad(m) {
   const rs = [m.meat, m.veg, m.staple, m.soup].filter(Boolean).map(R).filter(Boolean);
   return { mins: rs.reduce((s, r) => s + r.cook_time_min, 0), prepAhead: rs.some(r => r.prep_ahead) };
@@ -888,15 +884,10 @@ function renderDays(w, readonly) {
           const stapleKey = m.staple.replace(/\(.+\)/, '');
           const drinkKey = /豆浆/.test(m.drink) ? '豆浆' : m.drink;
           const drinkTip = (babyRules.breakfast_drink_rule || {})[drinkKey];
-          // 早餐的宝宝提示逐日重复(豆浆那段一周原样出现 3-4 次),跟菜谱一样默认收起
-          const bfRow = (label, text, tipKey) => {
-            const k = `${i}-bf-${tipKey}`;
-            const btn = text ? `<button class="baby-mini ${openBaby[k] ? 'on' : ''}"
-              onclick="toggleBaby('${k}')">宝${openBaby[k] ? ' ▲' : ' ▼'}</button>` : '';
-            return `<div class="dish"><span class="dish-name">${esc(label)}</span>${btn}
+          const bfRow = (label, text, tipKey) =>
+            `<div class="dish"><span class="dish-name">${esc(label)}</span>
               <span class="tag">${tipKey === 'drink' ? '饮品' : tipKey === 'staple' ? '主食' : '蛋'}</span></div>
-              ${text && openBaby[k] ? `<div class="baby-row">${esc(text)}</div>` : ''}`;
-          };
+              ${text ? `<div class="baby-row">${esc(text)}</div>` : ''}`;
           inner = bfRow(m.drink, drinkTip, 'drink')
             + bfRow(m.staple, babyRules.breakfast_adaptation[stapleKey] || babyRules.breakfast_adaptation['杂粮'], 'staple')
             + bfRow('蛋', null, 'egg');
@@ -1005,30 +996,39 @@ function setShopFilter(k) {
 
 // 两位掌勺各看一份:清单转成纯文本,复制走微信发给对方。
 // 按批复制——在店里本来就只需要当批那几样
+// 只导出**还没买的**——发给另一位掌勺时,已经划掉的行只是噪音;
+// 也不带 □ 这类只在屏幕上有意义的符号
 function shopText(only) {
   const n = breakfastNeeds();
   const lines = [];
   if (!only || only === 'bf') {
-    lines.push('【常备·按包装买】');
-    Object.entries(n.drinks).forEach(([k, v]) => lines.push(`  ${k} ${v} 天`));
-    Object.entries(n.staples).forEach(([k, v]) =>
-      lines.push(`  ${k} ${v} 天${n.variants[k] ? '(' + n.variants[k].join('/') + ')' : ''}`));
-    Object.entries(n.dinnerStaples).forEach(([k, v]) => lines.push(`  ${k} ${v} 天`));
-    lines.push(`  鸡蛋 约 ${n.eggs} 个`);
+    const items = [];
+    const add = (k, v, sub) => { if (!bought['bf|' + k]) items.push(`${k} ${v}${sub ? '(' + sub + ')' : ''}`); };
+    Object.entries(n.drinks).forEach(([k, v]) => add(k, v + ' 天'));
+    Object.entries(n.staples).forEach(([k, v]) => add(k, v + ' 天', n.variants[k] && n.variants[k].join('/')));
+    Object.entries(n.dinnerStaples).forEach(([k, v]) => add(k, v + ' 天'));
+    add('鸡蛋', `约 ${n.eggs} 个`);
+    if (items.length) lines.push(`常备(按包装买) · ${items.length} 样`, ...items.map(s => '· ' + s));
   }
   shoppingBatches().filter(b => !only || only === b.key).forEach(b => {
-    lines.push('', `【${b.name}】`);
+    const body = [];
     Object.entries(b.byCat).forEach(([cat, items]) => {
-      lines.push(` ${cat}`);
-      items.forEach(it => {
+      const left = items.filter(it => !bought[b.key + '|' + it.name]);
+      if (!left.length) return;
+      body.push(`${cat}:`);
+      left.forEach(it => {
         const q = it.g >= 1000 ? (it.g / 1000).toFixed(1) + 'kg' : it.g + 'g';
         const hint = it.ing && it.ing.pack_hint ? `(${it.ing.pack_hint})` : '';
-        const today = it.ing && it.ing.same_day ? ' ※当天吃' : '';
-        lines.push(`  ${bought[b.key + '|' + it.name] ? '✓' : '□'} ${it.name} ${q}${hint}${today}`);
+        const today = it.ing && it.ing.same_day ? ' ※当天吃完,别隔夜' : '';
+        body.push(`· ${it.name} ${q}${hint}${today}`);
       });
     });
+    if (lines.length) lines.push('');
+    const total = Object.values(b.byCat).flat().length;
+    const left = body.filter(s => s.startsWith('·')).length;
+    lines.push(left ? `${b.name} · 还差 ${left}/${total} 样` : `${b.name} · 已买齐 ✓`, ...body);
   });
-  return lines.join('\n').trim();
+  return lines.join('\n').trim() || '这批已经买齐了。';
 }
 function copyShop(only) {
   const txt = shopText(only);
@@ -1485,10 +1485,12 @@ function render() {
   document.getElementById('week-label').textContent =
     week ? `${DAYS[todayIdx]} · ${now.getMonth() + 1}/${now.getDate()}` : `${month}月 · 菜谱 ${recipes.items.length} 道`;
   let html = '';
-  // 已有菜单时「重新排一周」降为次要按钮:它最低频又是破坏性的,不该是全页最重的元素
-  if (view === 'menu') html = `<div class="menu-top">
-      <button class="gen-btn ${week ? 'secondary' : ''}" onclick="regen()">${week ? '重新排一周' : '生成本周菜单'}</button>
-    </div>` + renderMenu();
+  // 没菜单时「生成」是唯一的事,给全宽主按钮;
+  // 有菜单后它是最低频又最具破坏性的操作,挪到页尾、缩成小号——不该占着首屏最重的位置
+  if (view === 'menu') html = (week ? '' : `<div class="menu-top">
+      <button class="gen-btn" onclick="regen()">生成本周菜单</button>
+    </div>`) + renderMenu()
+    + (week ? `<div class="page-end"><button class="regen-mini" onclick="regen()">重新排一周</button></div>` : '');
   if (view === 'draw') html = renderDraw();
   if (view === 'shop') html = renderShop();
   if (view === 'season') html = renderSeason();
@@ -1502,8 +1504,8 @@ function render() {
 // (注意:确认/提示都不能用 confirm()——嵌在 iframe 里会被沙箱拦掉,表现是「点了没反应」)
 function regen() {
   if (week) { prevWeek = week; prevBought = bought; }
-  week = generateWeek(); bought = {}; lastSwap = null; openBaby = {};
-  store.set('week', week); store.set('bought', bought); store.set('openBaby', openBaby);
+  week = generateWeek(); bought = {}; lastSwap = null;
+  store.set('week', week); store.set('bought', bought);
   store.set('prevWeek', prevWeek); store.set('prevBought', prevBought);
   render();
 }

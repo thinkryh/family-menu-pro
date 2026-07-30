@@ -60,7 +60,7 @@
       "season_months": [6, 7, 8, 9],
       "baby_variant": {
         "suitable": true,
-        "split_point": "肉丝滑炒至熟、下青椒和盐之前盛出宝宝份(炒菜类分菜标准写法)",
+        "split_point": "肉丝滑炒至熟、下青椒和盐之前盛出宝宝份",
         "modification": "宝宝份肉丝剁细,拌入当餐软烂蔬菜同食",
         "unsuitable_reason": null
       },
@@ -80,7 +80,7 @@
       "season_months": [5, 6, 7, 8, 9],
       "baby_variant": {
         "suitable": true,
-        "split_point": "整把焯水后,取一小撮嫩叶段切碎为宝宝份;其余入锅蒜蓉炒(素菜类分菜标准写法:焯水阶段分)",
+        "split_point": "整把焯水后,取一小撮嫩叶段切碎为宝宝份;其余入锅蒜蓉炒",
         "modification": "嫩叶切碎,可拌入粥或饭",
         "unsuitable_reason": null
       },
@@ -126,7 +126,7 @@
       "season_months": "all",
       "baby_variant": {
         "suitable": true,
-        "split_point": "鸡块炖至骨肉轻拨即离、香菇炖透后,加盐前盛出宝宝份(料酒经长时间炖煮已挥发,符合硬规则)",
+        "split_point": "鸡块炖至骨肉轻拨即离、香菇炖透后,加盐前盛出宝宝份(料酒经长时间炖煮已挥发)",
         "modification": "取鸡腿纯肉撕成末(仔细剔骨),香菇切末,浇少量原汤。注意:鸡为未单独引入的新食材,首次给按新食材流程单独引入、观察 3 天",
         "unsuitable_reason": null
       },
@@ -192,8 +192,8 @@
       "season_months": [6, 7, 8, 9],
       "baby_variant": {
         "suitable": true,
-        "split_point": "豇豆焯水煮软、肉末滑炒至熟后,下干辣椒和盐之前盛出宝宝份(炒菜类分菜标准写法)",
-        "modification": "豇豆切 0.5cm 小段(硬规则:禁整段),肉末剁细拌匀",
+        "split_point": "豇豆焯水煮软、肉末滑炒至熟后,下干辣椒和盐之前盛出宝宝份",
+        "modification": "豇豆切 0.5cm 小段(禁整段),肉末剁细拌匀",
         "unsuitable_reason": null
       },
       "steps_brief": null
@@ -258,7 +258,7 @@
       "season_months": [6, 7, 8, 9],
       "baby_variant": {
         "suitable": true,
-        "split_point": "茄子整条蒸至指压可碎后,取一段去皮压泥为宝宝份;其余撕条浇蒜泥料汁(拌菜类:调味汁浇入前分)",
+        "split_point": "茄子整条蒸至指压可碎后,取一段去皮压泥为宝宝份;其余撕条浇蒜泥料汁",
         "modification": "去皮压泥或切小丁,可拌粥饭",
         "unsuitable_reason": null
       },
@@ -278,7 +278,7 @@
       "season_months": [5, 6, 7, 8, 9],
       "baby_variant": {
         "suitable": true,
-        "split_point": "黄瓜洗净去皮后、蒜末辣椒油等一切调料入盆之前,先盛出一段擦丝或切薄小片为宝宝份;其余拍块调味(凉拌类:食材处理阶段分)",
+        "split_point": "黄瓜洗净去皮后、蒜末辣椒油等一切调料入盆之前,先盛出一段擦丝或切薄小片为宝宝份;其余拍块调味",
         "modification": "去皮擦丝或切薄小片直接给,作佐餐爽口菜",
         "unsuitable_reason": null
       },
@@ -298,7 +298,7 @@
       "season_months": [5, 6, 7, 8],
       "baby_variant": {
         "suitable": true,
-        "split_point": "整把焯水后,取一小撮嫩叶切碎为宝宝份;其余入锅蒜蓉炒(素菜类分菜标准写法:焯水阶段分)",
+        "split_point": "整把焯水后,取一小撮嫩叶切碎为宝宝份;其余入锅蒜蓉炒",
         "modification": "嫩叶切碎拌粥或饭,苋菜补铁佳",
         "unsuitable_reason": null
       },
@@ -320,7 +320,7 @@
         "suitable": false,
         "split_point": null,
         "modification": null,
-        "unsuitable_reason": "土豆丝须保持脆爽断生口感,达不到「指压可碎」软度硬规则;且醋与干辣椒重口。宝宝土豆走蒸制压泥路线,不从本菜分,从严处理"
+        "unsuitable_reason": "土豆丝须保持脆爽断生口感,达不到「指压可碎」的软度要求;且醋与干辣椒重口。宝宝土豆走蒸制压泥路线,不从本菜分,从严处理"
       },
       "steps_brief": null
     },
@@ -361,7 +361,7 @@
       "season_months": "all",
       "baby_variant": {
         "suitable": true,
-        "split_point": "牛肉炖至筷子轻插即透、土豆炖面后,加盐生抽前盛出宝宝份(料酒经长时间炖煮已挥发,符合硬规则)",
+        "split_point": "牛肉炖至筷子轻插即透、土豆炖面后,加盐生抽前盛出宝宝份(料酒经长时间炖煮已挥发)",
         "modification": "牛肉顺纹撕成细末,土豆压小块,浇少量原汤",
         "unsuitable_reason": null
       },
@@ -513,7 +513,7 @@
       "season_months": "all",
       "baby_variant": {
         "suitable": true,
-        "split_point": "鸡毛菜焯软、香菇煮透后,入锅加盐前先盛出一小份(素菜类:焯水阶段分)",
+        "split_point": "鸡毛菜焯软、香菇煮透后,入锅加盐前先盛出一小份",
         "modification": "嫩叶切碎、香菇切末,拌粥或饭",
         "unsuitable_reason": null
       },
@@ -534,7 +534,7 @@
       "baby_variant": {
         "suitable": true,
         "split_point": "毛豆先白水煮至豆粒软烂,加盐和香料焖味之前盛出几荚为宝宝份",
-        "modification": "剥壳去膜压碎(硬规则:禁整粒),拌入粥饭",
+        "modification": "剥壳去膜压碎(禁整粒),拌入粥饭",
         "unsuitable_reason": null
       },
       "steps_brief": null
@@ -556,7 +556,7 @@
       "season_months": [7, 8, 9, 10, 11],
       "baby_variant": {
         "suitable": true,
-        "split_point": "排骨焯水后与藕块同炖至骨肉易离、藕块粉糯,加盐前盛出宝宝份(料酒经长时间炖煮已挥发,符合硬规则)",
+        "split_point": "排骨焯水后与藕块同炖至骨肉易离、藕块粉糯,加盐前盛出宝宝份(料酒经长时间炖煮已挥发)",
         "modification": "排骨取纯肉撕成末(防碎骨),藕块压成小丁或磨藕泥,浇少量原汤",
         "unsuitable_reason": null
       },
@@ -668,7 +668,7 @@
       "season_months": [6, 7, 8, 9],
       "baby_variant": {
         "suitable": true,
-        "split_point": "整把焯水后,取一小撮嫩叶切碎为宝宝份;其余入锅蒜蓉炒(素菜类分菜标准写法:焯水阶段分)",
+        "split_point": "整把焯水后,取一小撮嫩叶切碎为宝宝份;其余入锅蒜蓉炒",
         "modification": "嫩叶切碎,质地滑软好吞咽,拌粥或饭",
         "unsuitable_reason": null
       },
@@ -692,7 +692,7 @@
       "baby_variant": {
         "suitable": true,
         "split_point": "豇豆与茄子加水焖至全软后,加盐生抽前盛出宝宝份",
-        "modification": "豇豆切 0.5cm 小段(硬规则:禁整段),茄子去皮压小丁",
+        "modification": "豇豆切 0.5cm 小段(禁整段),茄子去皮压小丁",
         "unsuitable_reason": null
       },
       "steps_brief": null
@@ -735,8 +735,8 @@
       "season_months": [6, 7, 8, 9],
       "baby_variant": {
         "suitable": true,
-        "split_point": "排骨焯水后与玉米胡萝卜同炖至软烂,加盐前盛出宝宝份(料酒经长时间炖煮已挥发,符合硬规则)",
-        "modification": "排骨取纯肉撕末(防碎骨),胡萝卜压小丁,玉米粒刮蓉或压扁(硬规则:禁整粒),连少量清汤",
+        "split_point": "排骨焯水后与玉米胡萝卜同炖至软烂,加盐前盛出宝宝份(料酒经长时间炖煮已挥发)",
+        "modification": "排骨取纯肉撕末(防碎骨),胡萝卜压小丁,玉米粒刮蓉或压扁(禁整粒),连少量清汤",
         "unsuitable_reason": null
       },
       "steps_brief": null
@@ -866,7 +866,7 @@
       "baby_variant": {
         "suitable": true,
         "split_point": "番茄炒沙、蛋块拌匀、面条另锅煮软后,浇头加盐之前盛出宝宝份",
-        "modification": "面条剪短煮到全软(硬规则 noodle_rule:禁整根),拌少量番茄蛋碎,不加汤底咸汁",
+        "modification": "面条剪短煮到全软(禁整根),拌少量番茄蛋碎,不加汤底咸汁",
         "unsuitable_reason": null
       },
       "steps_brief": null
@@ -890,7 +890,7 @@
       "baby_variant": {
         "suitable": true,
         "split_point": "肉丝滑熟、青菜烫软、面条煮软后,汤底加盐撒胡椒之前盛出宝宝份",
-        "modification": "面条剪短(硬规则 noodle_rule),肉丝剁细,青菜取嫩叶切碎,只浇少量清汤",
+        "modification": "面条剪短(禁整根),肉丝剁细,青菜取嫩叶切碎,只浇少量清汤",
         "unsuitable_reason": null
       },
       "steps_brief": null
@@ -914,7 +914,7 @@
       "baby_variant": {
         "suitable": true,
         "split_point": "茄丁与肉末焖至全软后,加盐生抽老抽调卤之前盛出宝宝份",
-        "modification": "茄丁去皮压碎、肉末剁细,拌剪短煮软的面条(硬规则 noodle_rule);卤子调味后的不给",
+        "modification": "茄丁去皮压碎、肉末剁细,拌剪短煮软的面条(禁整根);卤子调味后的不给",
         "unsuitable_reason": null
       },
       "steps_brief": "茄子去皮切丁、肉末炒散 → 下茄丁加水焖至全软 → 盛出宝宝份(茄末肉末 + 单煮的短面条)→ 余下加生抽老抽收成卤 → 浇在煮好的面上。卤子可提前一顿做好,晚餐煮面即成。"
@@ -938,7 +938,7 @@
       "baby_variant": {
         "suitable": true,
         "split_point": "鸡胸煮熟撕丝、面条煮软过凉、黄瓜擦丝后,一切酱汁(芝麻酱/醋/蒜/辣椒油)拌入之前盛出宝宝份",
-        "modification": "面条剪短(硬规则 noodle_rule),鸡丝撕细,黄瓜去皮擦细丝,原味不拌酱。注意:鸡为未单独引入的新食材,首次按新食材流程观察 3 天",
+        "modification": "面条剪短(禁整根),鸡丝撕细,黄瓜去皮擦细丝,原味不拌酱。注意:鸡为未单独引入的新食材,首次按新食材流程观察 3 天",
         "unsuitable_reason": null
       },
       "steps_brief": null
@@ -957,7 +957,7 @@
       "season_months": [6, 7, 8, 9],
       "baby_variant": {
         "suitable": true,
-        "split_point": "秋葵整根焯水至软后,取两根为宝宝份;其余淋蒜蓉汁(拌菜类:调味汁浇入前分)",
+        "split_point": "秋葵整根焯水至软后,取两根为宝宝份;其余淋蒜蓉汁",
         "modification": "切 0.5cm 小段,黏液质地滑软好吞咽",
         "unsuitable_reason": null
       },
@@ -997,7 +997,7 @@
       "season_months": [6, 7, 8, 9, 10],
       "baby_variant": {
         "suitable": true,
-        "split_point": "整把焯水后,取一小撮嫩尖切碎为宝宝份;其余入锅蒜蓉炒(素菜类分菜标准写法:焯水阶段分)",
+        "split_point": "整把焯水后,取一小撮嫩尖切碎为宝宝份;其余入锅蒜蓉炒",
         "modification": "嫩尖切碎拌粥或饭,夏季叶菜里的高钙选择",
         "unsuitable_reason": null
       },
@@ -1018,7 +1018,7 @@
       "baby_variant": {
         "suitable": true,
         "split_point": "生菜下锅断生变软后,加盐蚝油前盛出宝宝份",
-        "modification": "务必焯软切碎,不给生叶(硬规则:生脆质地不给)",
+        "modification": "务必焯软切碎,不给生叶(生脆质地不给)",
         "unsuitable_reason": null
       },
       "steps_brief": null
@@ -1037,7 +1037,7 @@
       "season_months": [1, 2, 3, 4, 5, 9, 10, 11, 12],
       "baby_variant": {
         "suitable": true,
-        "split_point": "整把焯水后,取一小撮嫩叶切碎为宝宝份;其余入锅蒜蓉炒(素菜类分菜标准写法:焯水阶段分)",
+        "split_point": "整把焯水后,取一小撮嫩叶切碎为宝宝份;其余入锅蒜蓉炒",
         "modification": "嫩叶切碎,梗部偏韧不给宝宝",
         "unsuitable_reason": null
       },
@@ -1160,7 +1160,7 @@
       "season_months": "all",
       "baby_variant": {
         "suitable": true,
-        "split_point": "包菜叶焯水煮软后,下干辣椒和盐之前盛出宝宝份(素菜类分菜标准写法:焯水阶段分)",
+        "split_point": "包菜叶焯水煮软后,下干辣椒和盐之前盛出宝宝份",
         "modification": "只取叶部切碎,菜梗偏韧不给;须煮到指压可碎",
         "unsuitable_reason": null
       },
@@ -1200,7 +1200,7 @@
       "season_months": [1, 2, 3, 11, 12],
       "baby_variant": {
         "suitable": true,
-        "split_point": "整把焯水后,取一小撮嫩叶切碎为宝宝份;其余入锅蒜蓉炒(素菜类分菜标准写法:焯水阶段分)",
+        "split_point": "整把焯水后,取一小撮嫩叶切碎为宝宝份;其余入锅蒜蓉炒",
         "modification": "嫩叶切碎;茼蒿气味重,首次少量试反应",
         "unsuitable_reason": null
       },
@@ -1307,7 +1307,7 @@
       "season_months": [6, 7, 8, 9],
       "baby_variant": {
         "suitable": true,
-        "split_point": "番茄去皮切好后、撒糖之前先盛出宝宝份(凉拌类:食材处理阶段分)",
+        "split_point": "番茄去皮切好后、撒糖之前先盛出宝宝份",
         "modification": "去皮切小丁原味给,不加糖;若宝宝还没适应生番茄,改从当餐熟制番茄菜里分",
         "unsuitable_reason": null
       },
@@ -1332,7 +1332,7 @@
       "baby_variant": {
         "suitable": true,
         "split_point": "三样煮软后,加盐前盛出宝宝份",
-        "modification": "玉米粒刮蓉或压扁、毛豆去膜压碎(硬规则:两者都禁整粒)、胡萝卜切小丁须煮软",
+        "modification": "玉米粒刮蓉或压扁、毛豆去膜压碎(两者都禁整粒)、胡萝卜切小丁须煮软",
         "unsuitable_reason": null
       },
       "steps_brief": null
@@ -1378,7 +1378,7 @@
       "baby_variant": {
         "suitable": true,
         "split_point": "蛋液加温水调匀后先舀出一小碗单独蒸(不加任何调料),大人份另蒸并淋豉油——本菜在调味前就分好碗,零风险",
-        "modification": "宝宝碗铺挑净刺的鲈鱼腹肉碎,蒸熟即食。若当天早餐已吃全蛋,宝宝份只取鱼肉不取蛋(每天 1 全蛋的硬规则)",
+        "modification": "宝宝碗铺挑净刺的鲈鱼腹肉碎,蒸熟即食。若当天早餐已吃全蛋,宝宝份只取鱼肉不取蛋(每天 1 个全蛋已有固定早餐位)",
         "unsuitable_reason": null
       },
       "steps_brief": "鱼取腹肉,逐丝挑刺后切碎 → 蛋液加 1.5 倍温水打匀过筛 → 舀一小碗做宝宝份、其余入大盘 → 两份都铺鱼碎,水开后中小火蒸 10 分钟 → 大人份淋蒸鱼豉油撒葱花。全家同吃的宝宝重点菜,宝宝份全程零调味。"
@@ -1537,7 +1537,7 @@
       "baby_variant": {
         "suitable": true,
         "split_point": "面条与青菜在清水锅里煮软捞出后,浇辣汤之前先盛出宝宝份——宝宝份只要白煮面和焯软青菜,不接触辣卤",
-        "modification": "面条剪短(硬规则 noodle_rule),青菜取嫩叶切碎,可另拌当餐其他菜的肉末补蛋白。注意:羊肉是未引入过的新蛋白,若要给宝宝须另按新食材流程单独引入",
+        "modification": "面条剪短(禁整根),青菜取嫩叶切碎,可另拌当餐其他菜的肉末补蛋白。注意:羊肉是未引入过的新蛋白,若要给宝宝须另按新食材流程单独引入",
         "unsuitable_reason": null
       },
       "steps_brief": "羊肉丁加干辣椒、八角、花椒、香叶小火熬成红汤辣卤(可提前一顿做好)→ 面条另锅清水煮软,青菜同锅焯软 → 先盛宝宝份白面+青菜 → 大人碗浇辣卤羊肉汤。北方标志性面食,辣度按掌勺者口味调,卤子冷藏可用 2-3 天。"
