@@ -60,16 +60,18 @@
   header .week { font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; text-align: right; }
 
   .menu-top { display: flex; gap: 8px; margin: 4px 14px 12px; }
-  .prev-btn {
-    flex-shrink: 0; padding: 13px 14px; border-radius: var(--radius); cursor: pointer;
-    border: 1px solid var(--line); background: var(--card); color: var(--ink-soft);
-    font-family: inherit; font-size: 14px;
+  /* 重排确认:页内一条,不用 confirm()——iframe 沙箱里会被拦掉 */
+  .confirm-bar {
+    margin: 4px 14px 12px; padding: 10px 12px; border-radius: var(--radius);
+    background: var(--warn-soft); color: var(--warn); font-size: 13px; line-height: 1.5;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
   }
-  .prev-btn.on { background: var(--green-soft); border-color: transparent; color: var(--green); font-weight: 700; }
-  .prev-note {
-    margin: 0 14px 10px; padding: 8px 12px; border-radius: 10px;
-    background: var(--line-soft); color: var(--ink-soft); font-size: 12.5px;
+  .confirm-bar span { display: flex; gap: 6px; flex-shrink: 0; }
+  .confirm-bar button {
+    font-family: inherit; font-size: 13px; padding: 6px 14px; border-radius: 9px; cursor: pointer; border: none;
   }
+  .confirm-bar .no { background: var(--card); color: var(--ink-soft); border: 1px solid var(--line); }
+  .confirm-bar .yes { background: var(--warn); color: #fff; font-weight: 700; }
   .gen-btn {
     display: block; margin: 0; flex: 1; width: auto;
     padding: 13px; border: none; border-radius: var(--radius);
@@ -299,19 +301,8 @@
   .today-dishes { font-size: 16px; line-height: 1.5; margin-top: 2px; }
   .today-dishes .sep { color: var(--ink-soft); margin: 0 6px; }
   .today-warn { font-size: 12px; color: var(--baby); margin-top: 3px; }
-  .today-more { margin-top: 10px; width: 100%; border: none; background: var(--green-soft);
-    color: var(--green); font-family: inherit; font-size: 13px; padding: 8px; border-radius: 9px; cursor: pointer; }
   .stale { margin: 0 14px 10px; padding: 9px 12px; border-radius: 10px;
     background: var(--warn-soft); color: var(--warn); font-size: 13px; }
-  .undo-bar, .focus-note {
-    margin: 0 14px 10px; padding: 7px 12px; border-radius: 10px; background: var(--line-soft);
-    color: var(--ink-soft); font-size: 12.5px; display: flex; justify-content: space-between; align-items: center; gap: 8px;
-  }
-  .undo-bar button, .focus-note button {
-    border: 1px solid var(--line); background: var(--card); color: var(--green);
-    font-family: inherit; font-size: 12px; padding: 3px 10px; border-radius: 8px; cursor: pointer;
-  }
-  .dish.hit { background: var(--green-soft); border-radius: 9px; margin: 0 -6px; padding: 4px 6px; }
 
   /* 宝宝标记:只标例外。能吃的给一个小钮,想看分菜时机才展开 */
   .baby-mini {
@@ -321,12 +312,9 @@
   }
   .baby-mini.on { background: var(--baby); color: #fff; }
   .bdot.no { background: #a9aca6; }
-  .grid-cell span.sub.milk { color: var(--baby); }
-  .milk-row .tag.milk { background: var(--baby-soft); color: var(--baby-ink); }
-  .swap i { font-style: normal; opacity: .6; font-variant-numeric: tabular-nums; }
+  .swap-wrap { display: flex; gap: 6px; flex-shrink: 0; }
+  .swap.undo { color: var(--warn); border-color: var(--warn); }
   .swap[disabled] { opacity: .35; cursor: default; }
-  button.chip { font-family: inherit; cursor: pointer; }
-  button.chip.focus { outline: 2px solid var(--green); outline-offset: 1px; }
   .shop-qty .pack { display: block; font-style: normal; font-size: 11px; color: var(--ink-soft); text-align: right; }
   .copy-btn { margin-left: auto; }
 
@@ -410,17 +398,14 @@ const store = {
   set: (k, v) => { try { localStorage.setItem('fm_' + k, JSON.stringify(v)); } catch {} }
 };
 let week = store.get('week', null);
-let prevWeek = store.get('prevWeek', null);   // 重新生成时把旧的一周存下来,供回看
-let showPrev = false;
 let bought = store.get('bought', {});
-let prevBought = store.get('prevBought', {});  // 撤销重排时连采购勾选一起还原
+let confirmRegen = false;                      // 重排确认条是否展开
 let shopFilter = store.get('shopFilter', null);
 let seasonCat = store.get('seasonCat', null);
 let openRec = null;                            // 时令页展开的菜谱 id
 let openBaby = store.get('openBaby', {});      // 详细页展开了宝宝行的菜位
 let lastSwap = null;                           // 最近一次「换一换」,用于撤销
 let seasonQ = '';                              // 时令页搜索词
-let focusKey = null;                           // 体检条点中的那一项,用于高亮相关菜
 let copied = false;                            // 「复制清单」的短暂反馈
 let draw = store.get('draw', null);            // 抽卡:当前三张牌
 let drawSlots = store.get('drawSlots', {});    // 抽卡:条件槽
@@ -460,8 +445,6 @@ function range(text, dMin, dMax) {
 }
 const FISH_T  = range(babyRules.nutrition_weekly.fish, 2, 3);
 const LIVER_T = range(babyRules.nutrition_weekly.liver, 1, 2);
-// 晨奶:早餐里单独一行,数据取自 baby_rules,不在页面上写死
-const MORNING_MILK = babyRules.milk.feeds[0];
 
 function pool(cats, mealType) {
   return recipes.items.filter(r =>
@@ -557,8 +540,15 @@ function generateWeek() {
     const staple = bfStaples[i % bfStaples.length];
     const grain = staple === '杂粮' ? grains[grainIdx++ % grains.length] : null;
     // 早餐不上炒菜:饮品 + 主食 + 蛋
+    // 稀饭配牛奶是两碗水,同一天不排(规则写在 config.breakfast.drink_conflicts)
+    let drink = drinks[i % drinks.length];
+    const conflicts = (config.meals.breakfast.drink_conflicts || {})[staple] || [];
+    if (conflicts.includes(drink)) {
+      const alt = drinks.find(d => !conflicts.includes(d));
+      if (alt) drink = alt;
+    }
     const breakfast = {
-      drink: drinks[i % drinks.length],
+      drink,
       staple: grain ? `${staple}(${grain})` : staple,
       egg: '蛋 × 每人1个'
     };
@@ -676,40 +666,21 @@ function weekStats(w) {
   };
 }
 
-// 本周体检里超标/缺口的那一条,点了直接跳到详细视图并把相关的餐次高亮出来,
-// 不用自己在七天里找是哪一顿出的问题
-function focusStat(k) {
-  focusKey = focusKey === k ? null : k;
-  if (focusKey) { overview = false; store.set('overview', false); }
-  render();
-}
-const STAT_MATCH = {
-  fish:  (r) => hasIng(r, FISH),
-  liver: (r) => hasIng(r, ['猪肝']),
-  noodles: (r) => r.category === '主食',
-  soups: (r) => r.category === '汤',
-  season: (r) => r.season_months !== 'all',
-  baby:  (r) => !r.baby_variant.suitable
-};
-
+// 体检条只做「本周达标没有」的仪表盘,不兼作筛选器——点进去挑菜不是这一行该干的事
 function renderHealth(w) {
   const s = weekStats(w);
   const chip = (k) => {
     const c = s[k];
-    const on = focusKey === k ? ' focus' : '';
-    const click = ` onclick="focusStat('${k}')"`;
     // 宝宝那条用宝宝色,当季那条用常规色——一屏里只留一个强调色
-    if (c.mode === 'ratio') return `<button class="chip ${k === 'baby' ? 'baby' : ''}${on}"${click}><i class="dot"></i>${c.label} <b>${c.n}/${c.target}</b></button>`;
+    if (c.mode === 'ratio') return `<span class="chip ${k === 'baby' ? 'baby' : ''}"><i class="dot"></i>${c.label} <b>${c.n}/${c.target}</b></span>`;
     if (c.mode === 'range') {
       const bad = c.n < c.min || c.n > c.max;
-      return `<button class="chip ${bad ? 'warn' : ''}${on}"${click}><i class="dot"></i>${c.label} <b>${c.n}</b>/${c.min}-${c.max}</button>`;
+      return `<span class="chip ${bad ? 'warn' : ''}"><i class="dot"></i>${c.label} <b>${c.n}</b>/${c.min}-${c.max}</span>`;
     }
     const bad = c.n > c.max;
-    return `<button class="chip ${bad ? 'warn' : ''}${on}"${click}><i class="dot"></i>${c.label} <b>${c.n}</b>/≤${c.max}</button>`;
+    return `<span class="chip ${bad ? 'warn' : ''}"><i class="dot"></i>${c.label} <b>${c.n}</b>/≤${c.max}</span>`;
   };
-  return `<div class="health">${['fish','liver','noodles','soups','season','baby'].map(chip).join('')}</div>`
-    + (focusKey ? `<div class="focus-note">高亮的是「${s[focusKey].label}」相关的菜
-        <button onclick="focusStat('${focusKey}')">取消高亮</button></div>` : '');
+  return `<div class="health">${['fish','liver','noodles','soups','season','baby'].map(chip).join('')}</div>`;
 }
 
 // ---------- 购物清单 ----------
@@ -777,12 +748,16 @@ function dishRow(rid, dayIdx, mealKey, slot, readonly) {
     ? `<button class="baby-mini ${openBaby[key] ? 'on' : ''}" onclick="toggleBaby('${key}')">宝${openBaby[key] ? ' ▲' : ' ▼'}</button>`
     : `<span class="tag baby-no">宝宝不吃</span>`;
   const cand = readonly ? 0 : swapCount(r, mealKey, slot);
-  const hit = focusKey && STAT_MATCH[focusKey] && STAT_MATCH[focusKey](r) ? ' hit' : '';
-  return `<div class="dish${hit}">
+  // 刚换过的这一位就地给一个撤销,不用跑到页面顶上去找
+  const justSwapped = lastSwap && lastSwap.dayIdx === dayIdx
+    && lastSwap.mealKey === mealKey && lastSwap.slot === slot;
+  return `<div class="dish">
     <div><span class="dish-name">${esc(r.name)}</span>${babyTag}${spicy}${noodleTag}${seasonTag}
       <span class="dish-meta">${r.cook_time_min}分${r.prep_ahead ? '·可提前' : ''}</span></div>
-    ${readonly ? '' : `<button class="swap" ${cand ? '' : 'disabled'}
-       onclick="swapDish(${dayIdx},'${mealKey}','${slot}')">换一换${cand ? ` <i>${cand}</i>` : ''}</button>`}
+    ${readonly ? '' : `<span class="swap-wrap">${
+      justSwapped ? `<button class="swap undo" onclick="undoSwap()">撤销</button>` : ''}
+      <button class="swap" ${cand ? '' : 'disabled'}
+       onclick="swapDish(${dayIdx},'${mealKey}','${slot}')">换一换</button></span>`}
   </div>${babyLine(r, key)}`;
 }
 function babyLine(r, key) {
@@ -806,8 +781,8 @@ function renderGrid(w) {
     // 早餐全是模板项(饮品/主食/蛋),没有菜谱
     if (key === 'breakfast') {
       rows.push(`<span>${esc(m.staple)}</span>`);
-      rows.push(`<span class="sub">${esc(m.drink)} · 蛋</span>`);
-      rows.push(`<span class="sub milk">奶 ${MORNING_MILK.ml}ml</span>`);
+      rows.push(`<span class="sub">${esc(m.drink)}</span>`);
+      rows.push(`<span class="sub">蛋 × 每人1个</span>`);
     }
     [m.meat, m.veg, m.soup].filter(Boolean).map(R).filter(Boolean).forEach(r => rows.push(dot(r)));
     if (key !== 'breakfast') {
@@ -841,12 +816,7 @@ function renderDays(w, readonly) {
           const stapleKey = m.staple.replace(/\(.+\)/, '');
           const drinkKey = /豆浆/.test(m.drink) ? '豆浆' : m.drink;
           const drinkTip = (babyRules.breakfast_drink_rule || {})[drinkKey];
-          // 奶单独一行:它不是「饮品」轮换的一部分,是宝宝每天固定的一顿,时间也不同
-          inner = `<div class="dish milk-row">
-              <span class="dish-name">宝宝晨奶 ${MORNING_MILK.ml}ml</span><span class="tag milk">奶</span>
-              <span class="dish-meta">${esc(MORNING_MILK.time)}</span></div>
-            <div class="baby-row">${esc(MORNING_MILK.note)};与正餐间隔 ≥1-1.5 小时</div>
-            <div class="dish"><span class="dish-name">${esc(m.drink)}</span><span class="tag">大人饮品</span></div>
+          inner = `<div class="dish"><span class="dish-name">${esc(m.drink)}</span><span class="tag">饮品</span></div>
             ${drinkTip ? `<div class="baby-row">${esc(drinkTip)}</div>` : ''}
             <div class="dish"><span class="dish-name">${esc(m.staple)}</span><span class="tag">主食</span></div>
             <div class="baby-row">${esc(babyRules.breakfast_adaptation[stapleKey] || babyRules.breakfast_adaptation['杂粮'])}</div>
@@ -884,7 +854,6 @@ function renderToday() {
   return `<section class="today-card">
     <div class="today-head">今天 · ${DAYS[todayIdx]}</div>
     ${line(d.lunch, '午餐')}${line(d.dinner, '晚餐')}
-    <button class="today-more" onclick="setOverview(false)">看分菜时机与换一换 →</button>
   </section>`;
 }
 
@@ -896,24 +865,14 @@ function staleBanner() {
 }
 
 function renderMenu() {
-  // 上周菜单:只读回看,用来「上周吃过什么、这周别重样」,不参与换一换
-  if (showPrev) {
-    if (!prevWeek) return `<div class="empty">还没有上周菜单。<br>下次重新生成时,这一周会自动存成上周。</div>`;
-    return `<div class="prev-note">这是上周的菜单(重新生成时自动存下来的),只能看不能改。</div>`
-      + renderHealth(prevWeek)
-      + (overview ? renderGrid(prevWeek) : renderDays(prevWeek, true));
-  }
   if (!week) return `<div class="empty">还没有本周菜单。<br>点上面的按钮,10 秒生成。</div>`;
-  const undo = lastSwap ? `<div class="undo-bar">已换掉「${esc((R(lastSwap.was) || {}).name || '')}」
-    <button onclick="undoSwap()">撤销</button></div>` : '';
-  return staleBanner() + renderToday() + renderHealth(week) + undo + `
+  return staleBanner() + renderToday() + renderHealth(week) + `
     <div class="ov-toggle">
       <button class="${overview ? 'on' : ''}" onclick="setOverview(true)">一周概览</button>
       <button class="${overview ? '' : 'on'}" onclick="setOverview(false)">详细</button>
     </div>` + (overview ? renderGrid(week) : renderDays(week, false));
 }
 function setOverview(v) { overview = v; store.set('overview', v); render(); }
-function togglePrev() { showPrev = !showPrev; render(); }
 
 // 早餐是模板项不是菜谱,单列一块常备清单(按包装买,不算克重)
 function breakfastNeeds() {
@@ -1403,11 +1362,13 @@ function render() {
   document.getElementById('week-label').textContent =
     week ? `${week.month}月 · ${new Date(week.generatedAt).getMonth()+1}/${new Date(week.generatedAt).getDate()} 生成` : `${month}月 · 菜谱 ${recipes.items.length} 道`;
   let html = '';
-  if (view === 'menu') html = `<div class="menu-top">
-      <button class="gen-btn" onclick="regen()">${week ? '重新排一周' : '生成本周菜单'}</button>
-      ${prevWeek && !showPrev ? `<button class="prev-btn" onclick="undoRegen()">撤销重排</button>` : ''}
-      <button class="prev-btn ${showPrev ? 'on' : ''}" onclick="togglePrev()">${showPrev ? '回到本周' : '看上周'}</button>
-    </div>` + renderMenu();
+  if (view === 'menu') html = (confirmRegen
+      ? `<div class="confirm-bar">重新排一周?本周菜单整个换掉,买菜清单的勾选也会清空。
+           <span><button class="no" onclick="cancelRegen()">取消</button>
+           <button class="yes" onclick="doRegen()">重排</button></span></div>`
+      : `<div class="menu-top">
+           <button class="gen-btn" onclick="askRegen()">${week ? '重新排一周' : '生成本周菜单'}</button>
+         </div>`) + renderMenu();
   if (view === 'draw') html = renderDraw();
   if (view === 'shop') html = renderShop();
   if (view === 'season') html = renderSeason();
@@ -1416,25 +1377,17 @@ function render() {
   document.querySelectorAll('nav button').forEach(btn =>
     btn.classList.toggle('on', btn.dataset.view === view));
 }
-// 重排是破坏性的:整周换掉 + 购物清单勾选清空。已经有菜单时先问一句,并留下退路
-function regen() {
-  if (week && !confirm('重新排一周?本周菜单会整个换掉,买菜清单的勾选也会清空。')) return;
-  if (week) {
-    prevWeek = week; prevBought = bought;
-    store.set('prevWeek', prevWeek); store.set('prevBought', prevBought);
-  }
-  week = generateWeek(); bought = {}; showPrev = false; lastSwap = null; openBaby = {};
-  store.set('week', week); store.set('bought', bought); store.set('openBaby', openBaby);
-  render();
+// 重排是破坏性的:整周换掉 + 购物清单勾选清空。已有菜单时先要一次确认。
+// 确认必须做成页内的一条,不能用 confirm()——嵌在 iframe 里(预览页)会被沙箱拦掉,
+// 表现就是「点了没反应」。
+function askRegen() {
+  if (!week) { doRegen(); return; }
+  confirmRegen = true; render();
 }
-// 误点重排的退路:把上一周连同已勾选的采购状态一起放回来
-function undoRegen() {
-  if (!prevWeek) return;
-  const cur = week, curBought = bought;
-  week = prevWeek; bought = prevBought || {};
-  prevWeek = cur; prevBought = curBought;
-  store.set('week', week); store.set('bought', bought);
-  store.set('prevWeek', prevWeek); store.set('prevBought', prevBought);
+function cancelRegen() { confirmRegen = false; render(); }
+function doRegen() {
+  week = generateWeek(); bought = {}; lastSwap = null; openBaby = {}; confirmRegen = false;
+  store.set('week', week); store.set('bought', bought); store.set('openBaby', openBaby);
   render();
 }
 document.querySelectorAll('nav button').forEach(btn =>
