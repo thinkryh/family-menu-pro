@@ -427,6 +427,14 @@ const todayIdx = (new Date().getDay() + 6) % 7;   // 周一=0
 const inSeason = (m) => m === 'all' || (Array.isArray(m) && m.includes(month));
 const recipeInSeason = (r) => inSeason(r.season_months);
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const shuffle = (arr) => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
 const R = (id) => recipes.items.find(r => r.id === id);
 // 鱼 = 水产类里的鱼(虾另计),用于每周鱼次数核对
 const FISH = ingredients.items.filter(i => i.category === '水产' && i.name !== '虾').map(i => i.name);
@@ -466,8 +474,16 @@ function generateWeek() {
   let noodle = 0, fish = 0, liver = 0, daysDone = 0;
   const soupDays = new Set();
   while (soupDays.size < Math.min(config.constraints.soup_per_week_max, 2)) {
-    soupDays.add(Math.floor(Math.random() * 7));
+    soupDays.add(Math.floor(Math.random() * DAYS.length));
   }
+
+  // 面食夜:从**非采购日**里随机挑。面食夜没有荤位,压在采购日上就等于浪费了当天
+  // 唯一能吃不隔夜鱼虾的机会(周六当采购日时鲜货只能上 77%,就是这么来的);
+  // 而固定挑周二/周四/周六会让每周的面食夜一模一样。非采购日不够就退回全周挑。
+  const noodleMax = config.constraints.noodle_per_week_max;
+  const offDays = DAYS.map((_, i) => i).filter(i => !BUY_DAYS.includes(i));
+  const noodleDays = new Set(
+    shuffle(offDays.length >= noodleMax ? offDays : DAYS.map((_, i) => i)).slice(0, noodleMax));
 
   // 硬约束:放宽候选池时也不能突破
   const okHere = (r, dayIdx) => {
@@ -555,11 +571,7 @@ function generateWeek() {
   // 填充顺序打乱:固定从周一开始填,等于每周都让周一先挑,全库分最高的那道菜
   // 就会周周落在周一(7 月里就是番茄龙利鱼)。天序随机后,好菜落在哪天由运气决定。
   // 注意只打乱「填的先后」,每天自己的 dayIdx 不变,采购日/面食夜/汤夜都还认原来的日子。
-  const fillOrder = DAYS.map((_, i) => i);
-  for (let j = fillOrder.length - 1; j > 0; j--) {
-    const k = Math.floor(Math.random() * (j + 1));
-    [fillOrder[j], fillOrder[k]] = [fillOrder[k], fillOrder[j]];
-  }
+  const fillOrder = shuffle(DAYS.map((_, i) => i));
   const days = new Array(DAYS.length);
   fillOrder.forEach((i) => {
     const staple = bfStaples[i % bfStaples.length];
@@ -584,7 +596,7 @@ function generateWeek() {
     // 面食仅晚餐、≤3 次/周:命中时从 主食 菜谱池里选,面条本身带荤带素,当晚不再另排荤菜
     // 不是面食夜的晚上不吃米饭,走馒头/花卷轮换(米饭只在午餐)
     let noodleDish = null, dinnerStaple = null;
-    if (noodle < config.constraints.noodle_per_week_max && i % 2 === 1) {
+    if (noodle < noodleMax && noodleDays.has(i)) {
       noodleDish = chooseDish(['主食'], 'dinner', i, db);
       if (noodleDish) { dinnerStaple = noodleDish; noodle++; }
     }
