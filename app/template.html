@@ -714,7 +714,7 @@ const isShelf = (name) => ING[name] && ING[name].storage.batch_priority === 3;
 
 function shoppingBatches() {
   if (!week) return [];
-  // 每批从采购当天管起(周日批管周日-周二,周三批管周三-周六),
+  // 每批从采购当天管起(采购日与覆盖范围全读 config.batch_coverage,不写死),
   // 这样不隔夜的鱼虾就能排在采购当天吃
   const cov = config.shopping.batch_coverage;
   const buyDays = Object.keys(cov);
@@ -1007,7 +1007,7 @@ function renderShop() {
         </div>`).join('')}
     </section>`;
   }).join('') +
-  `<div class="footnote">点一下划掉已买的 · 份量为菜谱累加的净需求,采购时按包装规格就近取整<br>耐储类(米面粮油、根茎瓜类)按全周用量并入周日批,周三批只补生鲜</div>`;
+  `<div class="footnote">点一下划掉已买的 · 份量为菜谱累加的净需求,采购时按包装规格就近取整<br>耐储类(米面粮油、根茎瓜类)按全周用量并入第一批,后面几批只补生鲜</div>`;
 }
 
 // ---------- 时令指南 ----------

@@ -6,7 +6,7 @@
     "season_months": "[1-12] 数组,全年写 \"all\"",
     "baby_ok": "true/false,false 时 baby_note 写原因",
     "baby_note": "宝宝处理要点,无则 null",
-    "same_day": "true=不隔夜,排菜时只能排在采购当天(周日/周三);无此字段视为 false",
+    "same_day": "true=不隔夜,排菜时只能排在采购当天(采购日见 config.shopping);无此字段视为 false",
     "storage": {
       "method": "储存方式",
       "max_days": "建议吃完天数",
