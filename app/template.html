@@ -78,7 +78,8 @@
     cursor: pointer; font-family: inherit;
   }
   .gen-btn:active { opacity: .85; }
-  .page-end { text-align: center; padding: 6px 14px 18px; }
+  .page-end { text-align: center; padding: 6px 0 18px; }
+  .page-end .undo-bar { margin: 0 14px 10px; text-align: left; }
   .regen-mini {
     border: 1px solid var(--line); background: var(--card); color: var(--ink-soft);
     font-family: inherit; font-size: 13px; padding: 10px 18px; border-radius: 10px; cursor: pointer;
@@ -939,10 +940,7 @@ function staleBanner() {
 
 function renderMenu() {
   if (!week) return `<div class="empty">还没有本周菜单。<br>点上面的按钮,10 秒生成。</div>`;
-  // 重排后的退路:连同上一周的采购勾选一起还原
-  const undoRow = prevWeek ? `<div class="undo-bar">已重排本周菜单,买菜清单的勾选已清空
-    <button onclick="undoRegen()">撤销</button></div>` : '';
-  return staleBanner() + undoRow + renderToday() + renderHealth(week) + `
+  return staleBanner() + renderToday() + renderHealth(week) + `
     <div class="ov-toggle">
       <button class="${overview ? 'on' : ''}" onclick="setOverview(true)">一周概览</button>
       <button class="${overview ? '' : 'on'}" onclick="setOverview(false)">详细</button>
@@ -1490,7 +1488,12 @@ function render() {
   if (view === 'menu') html = (week ? '' : `<div class="menu-top">
       <button class="gen-btn" onclick="regen()">生成本周菜单</button>
     </div>`) + renderMenu()
-    + (week ? `<div class="page-end"><button class="regen-mini" onclick="regen()">重新排一周</button></div>` : '');
+    // 撤销跟着「重排」走——动作在页尾发生,退路就该在同一处,不能一个在页尾一个在页首
+    + (week ? `<div class="page-end">
+        ${prevWeek ? `<div class="undo-bar">刚重排过,买菜清单的勾选已清空
+          <button onclick="undoRegen()">撤销</button></div>` : ''}
+        <button class="regen-mini" onclick="regen()">重新排一周</button>
+      </div>` : '');
   if (view === 'draw') html = renderDraw();
   if (view === 'shop') html = renderShop();
   if (view === 'season') html = renderSeason();
