@@ -60,18 +60,17 @@
   header .week { font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; text-align: right; }
 
   .menu-top { display: flex; gap: 8px; margin: 4px 14px 12px; }
-  /* 重排确认:页内一条,不用 confirm()——iframe 沙箱里会被拦掉 */
-  .confirm-bar {
-    margin: 4px 14px 12px; padding: 10px 12px; border-radius: var(--radius);
-    background: var(--warn-soft); color: var(--warn); font-size: 13px; line-height: 1.5;
-    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  /* 重排后的撤销条:先做后给退路,不拦二次确认 */
+  .undo-bar {
+    margin: 0 14px 10px; padding: 8px 12px; border-radius: 10px; background: var(--line-soft);
+    color: var(--ink-soft); font-size: 12.5px;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
   }
-  .confirm-bar span { display: flex; gap: 6px; flex-shrink: 0; }
-  .confirm-bar button {
-    font-family: inherit; font-size: 13px; padding: 6px 14px; border-radius: 9px; cursor: pointer; border: none;
+  .undo-bar button {
+    border: 1px solid var(--line); background: var(--card); color: var(--green);
+    font-family: inherit; font-size: 12.5px; padding: 4px 12px; border-radius: 8px;
+    cursor: pointer; flex-shrink: 0; font-weight: 700;
   }
-  .confirm-bar .no { background: var(--card); color: var(--ink-soft); border: 1px solid var(--line); }
-  .confirm-bar .yes { background: var(--warn); color: #fff; font-weight: 700; }
   .gen-btn {
     display: block; margin: 0; flex: 1; width: auto;
     padding: 13px; border: none; border-radius: var(--radius);
@@ -399,7 +398,8 @@ const store = {
 };
 let week = store.get('week', null);
 let bought = store.get('bought', {});
-let confirmRegen = false;                      // 重排确认条是否展开
+let prevWeek = store.get('prevWeek', null);    // 重排前的上一周,撤销用
+let prevBought = store.get('prevBought', null);
 let shopFilter = store.get('shopFilter', null);
 let seasonCat = store.get('seasonCat', null);
 let openRec = null;                            // 时令页展开的菜谱 id
@@ -866,7 +866,10 @@ function staleBanner() {
 
 function renderMenu() {
   if (!week) return `<div class="empty">还没有本周菜单。<br>点上面的按钮,10 秒生成。</div>`;
-  return staleBanner() + renderToday() + renderHealth(week) + `
+  // 重排后的退路:连同上一周的采购勾选一起还原
+  const undoRow = prevWeek ? `<div class="undo-bar">已重排本周菜单,买菜清单的勾选已清空
+    <button onclick="undoRegen()">撤销</button></div>` : '';
+  return staleBanner() + undoRow + renderToday() + renderHealth(week) + `
     <div class="ov-toggle">
       <button class="${overview ? 'on' : ''}" onclick="setOverview(true)">一周概览</button>
       <button class="${overview ? '' : 'on'}" onclick="setOverview(false)">详细</button>
@@ -1362,13 +1365,9 @@ function render() {
   document.getElementById('week-label').textContent =
     week ? `${week.month}月 · ${new Date(week.generatedAt).getMonth()+1}/${new Date(week.generatedAt).getDate()} 生成` : `${month}月 · 菜谱 ${recipes.items.length} 道`;
   let html = '';
-  if (view === 'menu') html = (confirmRegen
-      ? `<div class="confirm-bar">重新排一周?本周菜单整个换掉,买菜清单的勾选也会清空。
-           <span><button class="no" onclick="cancelRegen()">取消</button>
-           <button class="yes" onclick="doRegen()">重排</button></span></div>`
-      : `<div class="menu-top">
-           <button class="gen-btn" onclick="askRegen()">${week ? '重新排一周' : '生成本周菜单'}</button>
-         </div>`) + renderMenu();
+  if (view === 'menu') html = `<div class="menu-top">
+      <button class="gen-btn" onclick="regen()">${week ? '重新排一周' : '生成本周菜单'}</button>
+    </div>` + renderMenu();
   if (view === 'draw') html = renderDraw();
   if (view === 'shop') html = renderShop();
   if (view === 'season') html = renderSeason();
@@ -1377,17 +1376,22 @@ function render() {
   document.querySelectorAll('nav button').forEach(btn =>
     btn.classList.toggle('on', btn.dataset.view === view));
 }
-// 重排是破坏性的:整周换掉 + 购物清单勾选清空。已有菜单时先要一次确认。
-// 确认必须做成页内的一条,不能用 confirm()——嵌在 iframe 里(预览页)会被沙箱拦掉,
-// 表现就是「点了没反应」。
-function askRegen() {
-  if (!week) { doRegen(); return; }
-  confirmRegen = true; render();
-}
-function cancelRegen() { confirmRegen = false; render(); }
-function doRegen() {
-  week = generateWeek(); bought = {}; lastSwap = null; openBaby = {}; confirmRegen = false;
+// 重排是破坏性的(整周换掉 + 购物清单勾选清空),但拦一道确认比直接给退路更烦人:
+// 点了就排,把旧的一周连同采购勾选留着,顶上出现「撤销」。
+// (注意:确认/提示都不能用 confirm()——嵌在 iframe 里会被沙箱拦掉,表现是「点了没反应」)
+function regen() {
+  if (week) { prevWeek = week; prevBought = bought; }
+  week = generateWeek(); bought = {}; lastSwap = null; openBaby = {};
   store.set('week', week); store.set('bought', bought); store.set('openBaby', openBaby);
+  store.set('prevWeek', prevWeek); store.set('prevBought', prevBought);
+  render();
+}
+function undoRegen() {
+  if (!prevWeek) return;
+  week = prevWeek; bought = prevBought || {};
+  prevWeek = null; prevBought = null;
+  store.set('week', week); store.set('bought', bought);
+  store.set('prevWeek', null); store.set('prevBought', null);
   render();
 }
 document.querySelectorAll('nav button').forEach(btn =>
