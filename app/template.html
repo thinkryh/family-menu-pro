@@ -463,7 +463,7 @@ function generateWeek() {
   const mainCount = {};     // 主料 -> 次数/周
   const batchIng = {};      // 采购批次 -> {主料: 次数},算食材复用分
   const dayIng = {};        // 天 -> {主料: 次数},同一天撞主料要罚
-  let noodle = 0, fish = 0, liver = 0;
+  let noodle = 0, fish = 0, liver = 0, daysDone = 0;
   const soupDays = new Set();
   while (soupDays.size < Math.min(config.constraints.soup_per_week_max, 2)) {
     soupDays.add(Math.floor(Math.random() * 7));
@@ -497,9 +497,17 @@ function generateWeek() {
     let s = 0;
     // 时令分:限定月份的菜过了季就吃不到,优先于全年都有的菜
     if (r.season_months !== 'all') s += 3;
-    // 营养缺口填补:本周还没排够的鱼/猪肝,权重最高(上限由 okHere 管)
-    if (hasIng(r, FISH) && fish < FISH_T.min) s += 5;
-    if (hasIng(r, ['猪肝']) && liver < LIVER_T.min) s += 5;
+    // 营养缺口填补:按「还剩几天 vs 还差几次」取二次曲线,周初几乎不加分,越拖越急。
+    // 这里必须是二次而不是线性:线性在周一也有 +1.4,足以让唯一能在非采购日上的
+    // 冷冻龙利鱼稳赢,结果每周一必是龙利鱼。周初不加压,鲜鱼才等得到周三/周日。
+    // 「还剩几天」按已填的天数算,不能按 dayIdx——填充顺序是打乱的
+    const urgency = (have, need) => {
+      const miss = need - have;
+      if (miss <= 0) return 0;
+      return Math.min(1, miss / Math.max(1, DAYS.length - daysDone)) ** 2;
+    };
+    if (hasIng(r, FISH)) s += 5 * urgency(fish, FISH_T.min);
+    if (hasIng(r, ['猪肝'])) s += 5 * urgency(liver, LIVER_T.min);
     // 耗时匹配:凑满 60 分钟预算优先,超预算重罚——可提前做的菜不占当餐灶台,轻罚
     const after = (budget ? budget.mins : 0) + r.cook_time_min;
     if (after > config.constraints.meal_time_budget_min) s -= r.prep_ahead ? 1 : 6;
@@ -521,7 +529,9 @@ function generateWeek() {
   const chooseDish = (cats, mealType, dayIdx, budget) => {
     const base = pool(cats, mealType).filter(r => okHere(r, dayIdx));
     let cand = base.filter(r => {
-      if (used[r.id] !== undefined && dayIdx - used[r.id] < config.constraints.recipe_cooldown_days) return false;
+      // 冷却期取绝对值:填充顺序打乱后,先后两天的差可能是负的
+      if (used[r.id] !== undefined
+          && Math.abs(dayIdx - used[r.id]) < config.constraints.recipe_cooldown_days) return false;
       for (const m of r.main_ingredients) {
         if ((mainCount[m.name] || 0) >= config.constraints.same_main_ingredient_per_week_max) return false;
       }
@@ -542,7 +552,16 @@ function generateWeek() {
   let grainIdx = 0;   // 杂粮日单独计数,保证一周里的杂粮品种不重样
   const dinnerStaples = config.meals.dinner.staple_rotation || ['馒头'];
   let stapleIdx = 0;
-  const days = DAYS.map((_, i) => {
+  // 填充顺序打乱:固定从周一开始填,等于每周都让周一先挑,全库分最高的那道菜
+  // 就会周周落在周一(7 月里就是番茄龙利鱼)。天序随机后,好菜落在哪天由运气决定。
+  // 注意只打乱「填的先后」,每天自己的 dayIdx 不变,采购日/面食夜/汤夜都还认原来的日子。
+  const fillOrder = DAYS.map((_, i) => i);
+  for (let j = fillOrder.length - 1; j > 0; j--) {
+    const k = Math.floor(Math.random() * (j + 1));
+    [fillOrder[j], fillOrder[k]] = [fillOrder[k], fillOrder[j]];
+  }
+  const days = new Array(DAYS.length);
+  fillOrder.forEach((i) => {
     const staple = bfStaples[i % bfStaples.length];
     const grain = staple === '杂粮' ? grains[grainIdx++ % grains.length] : null;
     // 早餐不上炒菜:饮品 + 主食 + 蛋
@@ -578,7 +597,8 @@ function generateWeek() {
       staple: dinnerStaple,
       soup: hasSoup ? chooseDish(['汤'], 'dinner', i, db) : null
     };
-    return { breakfast, lunch, dinner };
+    days[i] = { breakfast, lunch, dinner };
+    daysDone++;
   });
   enforceWeekly(days);
   return { days, month, generatedAt: Date.now() };
