@@ -348,6 +348,17 @@
     border: 1px solid var(--line); background: var(--card); color: var(--ink-soft);
     font-family: inherit; font-size: 12.5px; padding: 0 12px; border-radius: 10px; cursor: pointer;
   }
+  .rec-skip {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink-soft);
+    font-family: inherit; font-size: 12px; padding: 5px 12px; border-radius: 8px; cursor: pointer;
+  }
+  .rec-skip.on { border-color: var(--warn); color: var(--warn); }
+  .skip-bar {
+    background: var(--line-soft); color: var(--ink-soft); font-size: 12.5px; line-height: 1.6;
+    padding: 9px 12px; border-radius: 10px; margin-bottom: 10px;
+  }
+  .skip-bar button { border: 1px solid var(--line); background: var(--card); color: var(--green);
+    font-family: inherit; font-size: 12px; padding: 3px 10px; border-radius: 8px; margin-left: 6px; cursor: pointer; }
   .miss-hint { background: var(--warn-soft); color: var(--warn); font-size: 13px;
     padding: 9px 12px; border-radius: 10px; margin-bottom: 10px; }
   .miss-hint button { border: none; background: var(--warn); color: #fff; font-family: inherit;
@@ -438,6 +449,7 @@ let lastSwap = null;                           // 最近一次「换一换」,�
 let seasonQ = '';                              // 时令页搜索词
 let copied = null;                             // 「复制」的短暂反馈,值是批次 key
 let healthOpen = false;                        // 体检条是否展开全部数字
+let excluded = store.get('excluded', {});      // 标了「不做这道」的菜,排菜与候选都跳过
 let draw = store.get('draw', null);            // 今晚吃什么:当前三个候选
 let drawSlots = store.get('drawSlots', {});    // 今晚吃什么:条件槽
 let view = 'menu';
@@ -485,9 +497,14 @@ function range(text, dMin, dMax) {
 const FISH_T  = range(babyRules.nutrition_weekly.fish, 2, 3);
 const LIVER_T = range(babyRules.nutrition_weekly.liver, 1, 2);
 
+// 不做的菜:config 里家里本来就不吃的(taste.exclude),加上在页面上标过「不做这道」的。
+// 注意 taste.exclude 以前只写在配置里、没有任何代码读它——写了也不生效
+const CONFIG_EXCLUDE = new Set(((config.family.taste || {}).exclude) || []);
+const isExcluded = (r) => CONFIG_EXCLUDE.has(r.name) || !!excluded[r.id];
+
 function pool(cats, mealType) {
   return recipes.items.filter(r =>
-    cats.includes(r.category) && r.meal_type.includes(mealType) && recipeInSeason(r));
+    cats.includes(r.category) && r.meal_type.includes(mealType) && recipeInSeason(r) && !isExcluded(r));
 }
 
 // ---------- 排菜 ----------
@@ -1117,6 +1134,12 @@ function setSeasonCat(c) {
   store.set('seasonCat', seasonCat); render();
 }
 function toggleRec(id) { openRec = openRec === id ? null : id; render(); }
+// 「这道我们不做」:不改数据文件也能把菜从库里摘出去,排菜和今晚的候选都会跳过
+function toggleExclude(id) {
+  if (excluded[id]) delete excluded[id]; else excluded[id] = 1;
+  store.set('excluded', excluded); render();
+}
+function clearExcluded() { excluded = {}; store.set('excluded', excluded); render(); }
 function setSeasonQ(v) {
   seasonQ = v;
   const box = document.getElementById('season-q');
@@ -1158,6 +1181,9 @@ function renderRecRow(r) {
       ${aux}${steps}${babyBlock}
       <div class="rec-line"><em>标签</em>${tags}<span class="rec-tag season-tag">${
         r.season_months === 'all' ? '全年' : monthsOf(r.season_months).join('/') + ' 月'}</span></div>
+      <div class="rec-line"><em></em>
+        <button class="rec-skip ${excluded[r.id] ? 'on' : ''}" onclick="toggleExclude('${r.id}')">${
+          excluded[r.id] ? '已标为不做 · 点此恢复' : '这道我们不做'}</button></div>
     </div>
   </div>`;
 }
@@ -1200,6 +1226,11 @@ function renderSeason() {
   const catBar = `<div class="filters cat-bar">${cats.filter(c => countIn(c)).map(c =>
     `<button class="${seasonCat === c ? 'on' : ''}" onclick="setSeasonCat('${esc(c)}')">${esc(c)} ${countIn(c)}</button>`
   ).join('')}</div>`;
+  // 标过「不做」的菜在这一页可以看到并随时恢复,不然标完就找不回来了
+  const skipped = recipes.items.filter(r => excluded[r.id]);
+  const skipBar = seasonTab === 'rec' && skipped.length
+    ? `<div class="skip-bar">已标「不做」${skipped.length} 道:${skipped.map(r => esc(r.name)).join('、')}
+       <button onclick="clearExcluded()">全部恢复</button></div>` : '';
 
   const strip = `<div class="month-strip">${MONTHS.map(m =>
     `<button class="${m === mm ? 'on' : ''} ${m === month ? 'now' : ''}" onclick="setSeasonMonth(${m})">${m}</button>`
@@ -1285,7 +1316,7 @@ function renderSeason() {
     <div class="search-box"><input id="season-q" type="search" value="${esc(seasonQ)}"
       placeholder="${seasonTab === 'ing' ? '搜食材,如 苹果' : '搜菜名或主料,如 红烧 / 排骨'}"
       oninput="setSeasonQ(this.value)">${seasonQ ? `<button onclick="setSeasonQ('')">清除</button>` : ''}</div>
-    ${catBar}${filters}${missHint}${body}
+    ${catBar}${filters}${skipBar}${missHint}${body}
   </div>`;
 }
 
