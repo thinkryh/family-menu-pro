@@ -348,6 +348,24 @@
     border: 1px solid var(--line); background: var(--card); color: var(--ink-soft);
     font-family: inherit; font-size: 12.5px; padding: 0 12px; border-radius: 10px; cursor: pointer;
   }
+  .rec-skip {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink-soft);
+    font-family: inherit; font-size: 12px; padding: 5px 12px; border-radius: 8px; cursor: pointer;
+  }
+  .rec-skip.on { border-color: var(--warn); color: var(--warn); }
+  /* 下架的东西不从列表里拿掉,只压暗 + 打 ✕:标完就消失的话想恢复时找不回来。
+     否定语义一律用否定符号,不用文字圆章(写「忌」只会被读成肯定含义) */
+  .rec-head.off .dish-name, .ing-row.off .ing-name { color: var(--ink-soft); text-decoration: line-through; }
+  .x-mark { color: var(--warn); font-size: 12px; margin-right: 5px; font-weight: 700; }
+  .off-why { font-size: 12px; color: var(--ink-soft); line-height: 1.7; }
+  .ing-off-line { margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--ink-soft); line-height: 1.7; }
+  .skip-bar {
+    background: var(--line-soft); color: var(--ink-soft); font-size: 12.5px; line-height: 1.6;
+    padding: 9px 12px; border-radius: 10px; margin-bottom: 10px;
+  }
+  .skip-bar button { border: 1px solid var(--line); background: var(--card); color: var(--green);
+    font-family: inherit; font-size: 12px; padding: 3px 10px; border-radius: 8px; margin-left: 6px; cursor: pointer; }
   .miss-hint { background: var(--warn-soft); color: var(--warn); font-size: 13px;
     padding: 9px 12px; border-radius: 10px; margin-bottom: 10px; }
   .miss-hint button { border: none; background: var(--warn); color: #fff; font-family: inherit;
@@ -438,6 +456,8 @@ let lastSwap = null;                           // 最近一次「换一换」,�
 let seasonQ = '';                              // 时令页搜索词
 let copied = null;                             // 「复制」的短暂反馈,值是批次 key
 let healthOpen = false;                        // 体检条是否展开全部数字
+let excluded = store.get('excluded', {});      // 标了「不做这道」的菜,排菜与候选都跳过
+let excludedIng = store.get('excludedIng', {});// 标了「这个不吃」的食材,用到它的菜整批下架
 let draw = store.get('draw', null);            // 今晚吃什么:当前三个候选
 let drawSlots = store.get('drawSlots', {});    // 今晚吃什么:条件槽
 let view = 'menu';
@@ -485,9 +505,22 @@ function range(text, dMin, dMax) {
 const FISH_T  = range(babyRules.nutrition_weekly.fish, 2, 3);
 const LIVER_T = range(babyRules.nutrition_weekly.liver, 1, 2);
 
+// 忌口分两层,因为家里说不吃的时候说的是两种东西:
+//   「牛肉炖南瓜不吃」——挑的是这一道菜,别的牛肉菜照吃 → 菜级
+//   「秋葵不吃」——挑的是这样食材,凡是用它的都别端上来 → 食材级
+// 只有菜级的话,一句「秋葵不吃」要人自己去库里翻出 2 道菜逐个标,
+// 而且以后新入库的秋葵菜还会漏回来。食材级一次挡住现在和将来。
+const CONFIG_EXCLUDE = new Set(((config.family.taste || {}).exclude) || []);
+const CONFIG_EXCLUDE_ING = new Set(((config.family.taste || {}).exclude_ingredients) || []);
+const isIngExcluded = (name) => CONFIG_EXCLUDE_ING.has(name) || !!excludedIng[name];
+// 这道菜被哪几样忌口食材卡住(用来在页面上说清楚「为什么这道不排」)
+const offIngsOf = (r) => r.main_ingredients.map(m => m.name).filter(isIngExcluded);
+const isDishExcluded = (r) => CONFIG_EXCLUDE.has(r.name) || CONFIG_EXCLUDE.has(r.id) || !!excluded[r.id];
+const isExcluded = (r) => isDishExcluded(r) || offIngsOf(r).length > 0;
+
 function pool(cats, mealType) {
   return recipes.items.filter(r =>
-    cats.includes(r.category) && r.meal_type.includes(mealType) && recipeInSeason(r));
+    cats.includes(r.category) && r.meal_type.includes(mealType) && recipeInSeason(r) && !isExcluded(r));
 }
 
 // ---------- 排菜 ----------
@@ -588,7 +621,9 @@ function generateWeek() {
 
   const drinks = config.meals.breakfast.drink_rotation;
   const bfStaples = config.meals.breakfast.staple_rotation;
-  const grains = config.meals.breakfast.grain_rotation;
+  // 杂粮轮换也过一遍忌口:玉米/红薯/紫薯/贝贝南瓜都是食材库里的东西,
+  // 标了不吃却还在早餐里天天轮到,等于忌口只管了半个页面
+  const grains = config.meals.breakfast.grain_rotation.filter(g => !isIngExcluded(g));
 
   let grainIdx = 0;   // 杂粮日单独计数,保证一周里的杂粮品种不重样
   const dinnerStaples = config.meals.dinner.staple_rotation || ['馒头'];
@@ -600,7 +635,7 @@ function generateWeek() {
   const days = new Array(DAYS.length);
   fillOrder.forEach((i) => {
     const staple = bfStaples[i % bfStaples.length];
-    const grain = staple === '杂粮' ? grains[grainIdx++ % grains.length] : null;
+    const grain = staple === '杂粮' && grains.length ? grains[grainIdx++ % grains.length] : null;
     // 早餐不上炒菜:饮品 + 主食 + 蛋
     // 稀饭配牛奶是两碗水,同一天不排(规则写在 config.breakfast.drink_conflicts)
     let drink = drinks[i % drinks.length];
@@ -1117,6 +1152,20 @@ function setSeasonCat(c) {
   store.set('seasonCat', seasonCat); render();
 }
 function toggleRec(id) { openRec = openRec === id ? null : id; render(); }
+// 「这道我们不做」:不改数据文件也能把菜从库里摘出去,排菜和今晚的候选都会跳过
+function toggleExclude(id) {
+  if (excluded[id]) delete excluded[id]; else excluded[id] = 1;
+  store.set('excluded', excluded); render();
+}
+// 「这个我们不吃」:食材级,用它作主料的菜一起下架,以后新入库的也挡住
+function toggleExcludeIng(name) {
+  if (excludedIng[name]) delete excludedIng[name]; else excludedIng[name] = 1;
+  store.set('excludedIng', excludedIng); render();
+}
+function clearExcluded() {
+  excluded = {}; excludedIng = {};
+  store.set('excluded', excluded); store.set('excludedIng', excludedIng); render();
+}
 function setSeasonQ(v) {
   seasonQ = v;
   const box = document.getElementById('season-q');
@@ -1131,8 +1180,11 @@ function setSeasonQ(v) {
 // 以及宝宝重点菜/生僻菜才有的 steps_brief。
 function renderRecRow(r) {
   const open = openRec === r.id;
-  const head = `<div class="rec-head" onclick="toggleRec('${r.id}')">
-    <div><span class="dish-name" style="font-size:15px">${esc(r.name)}</span>${
+  const offIngs = offIngsOf(r);
+  const off = isExcluded(r);
+  // 下架的菜留在列表里但打 ✕:标完就消失的话,想恢复时根本找不到它
+  const head = `<div class="rec-head ${off ? 'off' : ''}" onclick="toggleRec('${r.id}')">
+    <div>${off ? '<span class="x-mark">✕</span>' : ''}<span class="dish-name" style="font-size:15px">${esc(r.name)}</span>${
       r.spicy ? `<span class="spicy">${'辣'.repeat(r.spicy)}</span>` : ''}${
       r.baby_variant.suitable ? '<span class="tag baby-tag">宝宝可吃</span>'
                               : '<span class="tag baby-no">宝宝不吃</span>'}</div>
@@ -1158,6 +1210,17 @@ function renderRecRow(r) {
       ${aux}${steps}${babyBlock}
       <div class="rec-line"><em>标签</em>${tags}<span class="rec-tag season-tag">${
         r.season_months === 'all' ? '全年' : monthsOf(r.season_months).join('/') + ' 月'}</span></div>
+      <div class="rec-line"><em></em>${
+        // 被食材卡住时不给「这道我们不做」的按钮:点它不会让菜回来,只会让人以为点错了。
+        // 要恢复得去掉那样食材的忌口,所以这里直接说清楚是哪一样
+        offIngs.length
+          ? `<span class="off-why">因为不吃${offIngs.map(esc).join('、')},这道不排。
+             ${offIngs.map(n => `<button class="rec-skip" onclick="toggleExcludeIng('${esc(n)}')">恢复吃${esc(n)}</button>`).join('')}</span>`
+        : (CONFIG_EXCLUDE.has(r.name) || CONFIG_EXCLUDE.has(r.id))
+          ? `<span class="off-why">家里定下的不做这道,长期有效。</span>`
+          : `<button class="rec-skip ${excluded[r.id] ? 'on' : ''}" onclick="toggleExclude('${r.id}')">${
+              excluded[r.id] ? '已标为不做 · 点此恢复' : '这道我们不做'}</button>`
+      }</div>
     </div>
   </div>`;
 }
@@ -1200,6 +1263,18 @@ function renderSeason() {
   const catBar = `<div class="filters cat-bar">${cats.filter(c => countIn(c)).map(c =>
     `<button class="${seasonCat === c ? 'on' : ''}" onclick="setSeasonCat('${esc(c)}')">${esc(c)} ${countIn(c)}</button>`
   ).join('')}</div>`;
+  // 忌口清单在两个标签页都显示:食材页标的会影响菜谱页,只在一边显示等于另一边莫名少了菜。
+  // config 里家里定死的不列在这里——这一条只管页面上标的,「全部恢复」也只恢复这些
+  const skipped = recipes.items.filter(r => excluded[r.id]);
+  const skippedIng = Object.keys(excludedIng).filter(n => excludedIng[n]);
+  const byIngCount = skippedIng.length
+    ? recipes.items.filter(r => !excluded[r.id] && r.main_ingredients.some(m => excludedIng[m.name])).length : 0;
+  const parts = [];
+  if (skippedIng.length) parts.push(`不吃 ${skippedIng.map(esc).join('、')}${byIngCount ? `(连带 ${byIngCount} 道菜不排)` : ''}`);
+  if (skipped.length) parts.push(`不做 ${skipped.map(r => esc(r.name)).join('、')}`);
+  const skipBar = parts.length
+    ? `<div class="skip-bar">${parts.join(';')}
+       <button onclick="clearExcluded()">全部恢复</button></div>` : '';
 
   const strip = `<div class="month-strip">${MONTHS.map(m =>
     `<button class="${m === mm ? 'on' : ''} ${m === month ? 'now' : ''}" onclick="setSeasonMonth(${m})">${m}</button>`
@@ -1248,12 +1323,27 @@ function renderSeason() {
                 if (last && m === last[1] + 1) last[1] = m; else acc.push([m, m]);
                 return acc;
               }, []).map(([a, b2]) => a === b2 ? `${a}月` : `${a}-${b2}月`).join('·');
-          return `<div class="ing-row ${open ? 'open' : ''}" onclick="toggleRec('ing:${esc(i.name)}')">
+          const ingOff = isIngExcluded(i.name);
+          const byIng = recipes.items.filter(r => r.main_ingredients.some(m => m.name === i.name));
+          const fromCfg = CONFIG_EXCLUDE_ING.has(i.name);
+          // 标之前先说清楚会连带下架哪几道菜——「不吃秋葵」听起来只是一样菜,
+          // 实际是两道菜从此不再出现,点下去之前该看得见
+          const offBtn = fromCfg
+            ? `<div class="ing-off-line">家里定下的不吃,长期有效${byIng.length ? `;连带 ${byIng.length} 道菜不排` : ''}。</div>`
+            : `<div class="ing-off-line">
+                 <button class="rec-skip ${ingOff ? 'on' : ''}" onclick="event.stopPropagation();toggleExcludeIng('${esc(i.name)}')">${
+                   ingOff ? '已标为不吃 · 点此恢复' : '这个我们不吃'}</button>
+                 ${byIng.length ? `<span class="off-why">${ingOff ? '连带不排' : '标了会连带下架'} ${byIng.length} 道菜:${
+                   byIng.map(r => esc(r.name)).join('、')}</span>` : ''}
+               </div>`;
+          return `<div class="ing-row ${open ? 'open' : ''} ${ingOff ? 'off' : ''}" onclick="toggleRec('ing:${esc(i.name)}')">
             <div>
-              <div class="ing-name">${esc(i.name)}${i.same_day ? '<span class="badge-today">当天吃</span>' : ''}${
+              <div class="ing-name">${ingOff ? '<span class="x-mark">✕</span>' : ''}${esc(i.name)}${
+                i.same_day ? '<span class="badge-today">当天吃</span>' : ''}${
                 i.baby_ok ? '' : '<span class="nb">宝宝不吃</span>'}</div>
               ${urgent || open ? `<div class="ing-keep ${urgent ? 'urgent' : ''}">${keep}</div>` : ''}
               ${open && i.baby_note ? `<div class="ing-keep">宝宝:${esc(i.baby_note)}</div>` : ''}
+              ${open ? offBtn : ''}
             </div>
             <div class="ing-when">
               <div class="ing-span">${span}</div>
@@ -1279,13 +1369,13 @@ function renderSeason() {
     ${strip}
     <div class="health">
       <span class="chip"><i class="dot"></i>${allMonths ? '全库' : mm + ' 月在季'} <b>${ings.length}</b>/${ingredients.items.length} 食材</span>
-      <span class="chip"><i class="dot"></i>可做 <b>${recs.length}</b>/${recipes.items.length} 道菜</span>
+      <span class="chip"><i class="dot"></i>可做 <b>${recs.filter(r => !isExcluded(r)).length}</b>/${recipes.items.length} 道菜</span>
     </div>
     ${tabs}
     <div class="search-box"><input id="season-q" type="search" value="${esc(seasonQ)}"
       placeholder="${seasonTab === 'ing' ? '搜食材,如 苹果' : '搜菜名或主料,如 红烧 / 排骨'}"
       oninput="setSeasonQ(this.value)">${seasonQ ? `<button onclick="setSeasonQ('')">清除</button>` : ''}</div>
-    ${catBar}${filters}${missHint}${body}
+    ${catBar}${filters}${skipBar}${missHint}${body}
   </div>`;
 }
 
@@ -1315,6 +1405,7 @@ function drawCards() {
 
   let cand = recipes.items.filter(r => {
     if (!recipeInSeason(r)) return false;
+    if (isExcluded(r)) return false;                              // 忌口的菜不进候选
     if (!r.meal_type.includes('dinner')) return false;
     if (hasIng(r, SAME_DAY) && !todayBuy) return false;          // 不隔夜的鲜货:今天不是采购日就抽不到
     if (inWeek[r.id] !== undefined) return false;                 // 本周已经排过的不再抽
