@@ -80,11 +80,49 @@ for (const r of recipes.items) {
   }
 }
 
+// 忌口清单必须对得上库里的东西。这两个列表是「写了就该生效」的配置,
+// 一个错字(家里说「牛肉炖南瓜」,库里叫「牛肉末炖南瓜」)会让它安静地什么都不做——
+// taste.exclude 以前没有任何代码读它,就是这么白写了很久的。
+const taste = config.family.taste || {};
+const recNames = new Set(recipes.items.map((r) => r.name));
+// 完全对不上的只是提醒:忌口可以先于菜谱存在(臭鳜鱼就从来没入过库,是「别加进来」的备忘)。
+// 对上一半的才是错字,报错——「牛肉炖南瓜」能找到「牛肉末炖南瓜」,那就是想排它却没排掉。
+// 「像」的判断不能只用 includes:家里说的「牛肉炖南瓜」和库里的「牛肉末炖南瓜」差一个字,
+// 互相都不是对方的子串。按子序列比(短的字按顺序出现在长的里),再要求重合度够高。
+const alike = (a, b) => {
+  const [s, l] = a.length <= b.length ? [a, b] : [b, a];
+  if (s.length < 2 || s.length / l.length < 0.6) return false;
+  let i = 0;
+  for (const ch of l) if (ch === s[i]) i++;
+  return i === s.length;
+};
+const notes = [];
+const checkList = (list, label, has, nearOf) => {
+  for (const name of list || []) {
+    if (has(name)) continue;
+    const near = nearOf(name);
+    if (near.length) err(`${label} 里的「${name}」对不上库里的名字,写了不生效;是不是想写「${near.join('」「')}」?`);
+    else notes.push(`${label} 的「${name}」库里没有,当作「别加进来」的备忘留着`);
+  }
+};
+checkList(taste.exclude, 'taste.exclude',
+  (n) => recNames.has(n) || ids.has(n),
+  (n) => recipes.items.filter((r) => alike(n, r.name)).map((r) => r.name));
+checkList(taste.exclude_ingredients, 'taste.exclude_ingredients',
+  (n) => ingNames.has(n),
+  (n) => [...ingNames].filter((i) => alike(n, i)));
+
 if (errors.length) {
   console.error(`校验失败,${errors.length} 处:\n` + errors.map((e) => '  ✗ ' + e).join('\n'));
   process.exit(1);
 }
-console.log(`✓ 校验通过:菜谱 ${recipes.items.length} 道,食材 ${ingredients.items.length} 项`);
+notes.forEach((n) => console.log('  · ' + n));
+const offIng = new Set(taste.exclude_ingredients || []);
+const offDish = new Set(taste.exclude || []);
+const off = recipes.items.filter((r) => offDish.has(r.name) || offDish.has(r.id) ||
+  r.main_ingredients.some((m) => offIng.has(m.name)));
+console.log(`✓ 校验通过:菜谱 ${recipes.items.length} 道,食材 ${ingredients.items.length} 项` +
+  (off.length ? `;忌口下架 ${off.length} 道,剩 ${recipes.items.length - off.length} 道可排` : ''));
 
 if (process.argv.includes('--validate')) process.exit(0);
 

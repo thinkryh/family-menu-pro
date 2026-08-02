@@ -1,13 +1,20 @@
 {
   "family": {
     "adults": 4,
-    "adults_note": "4 位成人,其中 2 位掌勺、会做家常菜(所以菜谱只写决策要点不写步骤);吃辣,无忌口",
+    "adults_note": "4 位成人,其中 2 位掌勺、会做家常菜(所以菜谱只写决策要点不写步骤);吃辣;不吃的东西见 taste.exclude / taste.exclude_ingredients",
     "baby": {
       "age_stage": "1-2 岁",
       "allergies": [],
       "introduced_proteins": ["猪肉", "牛肉", "鱼肉"]
     },
-    "taste": { "base": "咸鲜为主,偏北方面食", "spicy_ok": true, "exclude": ["臭鳜鱼"] },
+    "taste": {
+      "base": "咸鲜为主,偏北方面食",
+      "spicy_ok": true,
+      "exclude": ["臭鳜鱼", "牛肉末炖南瓜", "平菇炒鸡片"],
+      "exclude_note": "整道菜不做。写菜谱的 name 或 id,build.js 会校验能不能对上——对不上就是写了不生效,和以前一样白写",
+      "exclude_ingredients": ["秋葵", "苦瓜", "苋菜", "红薯叶"],
+      "exclude_ingredients_note": "这样食材不吃,用到它作主料的菜全部一起下架,以后新入库的菜也自动挡住;名字必须在 ingredients.json 里"
+    },
     "location": "华东"
   },
   "meals": {
